@@ -619,6 +619,22 @@
         map.setMaxZoom(18);
         map.setMaxBounds(null);
 
+        // טיפול במסך הניצחון של סוף המערכה ושחרור המצלמה
+        if (type === 'victory') {
+            map.flyTo([32.5, 43.0], 5, { duration: 1.5 });
+            document.getElementById('modal-title').innerText = "ניצחון מוחלט!";
+            document.getElementById('modal-desc').innerText = `האויב הושמד לחלוטין. משימות הסיכול הושלמו... אבל הקושי מזנק לרמה ${currentLoop}!`;
+            document.getElementById('modal-btn').innerText = "המשך מערכה";
+            document.getElementById('mission-modal').className = 'mission-brief urgent';
+            document.getElementById('modal-btn').className = 'btn-start urgent';
+            // לחיצה תציג את התדרוך של שלב 1 ברמה החדשה במקום להתחיל מיד
+            document.getElementById('modal-btn').onclick = function() { showLevelModal('normal'); };
+            return;
+        }
+
+        // איפוס פעולת הכפתור לשאר המצבים
+        document.getElementById('modal-btn').onclick = startLevel;
+
         let isDefense = (lvl.type === 'defense');
         let isVip = (lvl.type === 'attack_vip');
 
@@ -840,11 +856,7 @@
             const maxLvl = 8; 
             if (currentLevel > maxLvl) {
                 currentLevel = 1; currentLoop++;
-                document.getElementById('modal-title').innerText = "ניצחון מוחלט!";
-                document.getElementById('modal-desc').innerText = `האויב הושמד לחלוטין. משימות הסיכול הושלמו... אבל הקושי מזנק לרמה ${currentLoop}!`;
-                document.getElementById('modal-btn').innerText = "המשך מערכה";
-                document.getElementById('mission-modal').className = 'mission-brief urgent';
-                document.getElementById('modal-overlay').style.display = 'flex';
+                showLevelModal('victory');
             } else {
                 showLevelModal('normal');
             }
