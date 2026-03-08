@@ -263,14 +263,14 @@
         <div class="campaign-card lebanon" onclick="initGame('lebanon')">
             <div class="campaign-icon">🌲</div>
             <h3>חזית צפון (לבנון)</h3>
-            <p>תמרון רגלי, טנקים, הנדסה, ארטילריה, והגנת שמיים באמצעות כיפת ברזל ומגן אור.</p>
+            <p>תמרון רגלי, טנקים, ארטילריה, הגנת שמיים, וסיכול בבונקר תת-קרקעי בביירות.</p>
             <div class="text-green-500 font-bold mt-auto">» התחל קמפיין צפוני</div>
         </div>
         
         <div class="campaign-card iran" onclick="initGame('iran')">
             <div class="campaign-icon">☢️</div>
             <h3>מעגל שלישי (איראן)</h3>
-            <p>תקיפות אוויריות (F-35), תדלוק באוויר, והגנה רב-שכבתית מפני בליסטיקה.</p>
+            <p>תקיפות עומק, תדלוק באוויר, יירוט טילים בליסטיים, ומשימת סיום - חיסול שיירת מנהיג איראן!</p>
             <div class="text-yellow-500 font-bold mt-auto">» התחל תקיפה מרחבית</div>
         </div>
     </div>
@@ -278,8 +278,8 @@
     <div class="features-section">
         <h2>תדריך מערכות טקטי:</h2>
         <div class="features-list">
-            <div><span>🎯 חיתוך גזרות:</span> בשלבי התקפה, המצלמה תנעל על הגזרה המבצעית. עליך לסרוק את השטח מקרוב כדי לאתר את כלל המטרות.</div>
-            <div><span>🛡️ מערכי הגנה:</span> בשלבי ההגנה, המצלמה תתרחק מעט כדי לאפשר ראייה היקפית. עליך ליירט איומים לפני פגיעה.</div>
+            <div><span>🎯 חיתוך גזרות:</span> בשלבי התקפה, המצלמה תנעל על הגזרה המבצעית. בשלב הסיום תצטרך לסרוק רחובות ידנית!</div>
+            <div><span>🛡️ מערכי הגנה:</span> בשלבי ההגנה, המצלמה תתרחק מעט כדי לאפשר ראייה היקפית. יירט איומים לפני פגיעה.</div>
             <div><span>📱 ממשק נייד:</span> בטלפון, ניתן לגרור את המפה באצבע. לחץ "תצוגת נייד" לפיצול מסך נוח.</div>
             <div><span>⚠️ פיקוד העורף:</span> שים לב להתרעות "צבע אדום". כישלון ביירוט יוביל לקריסת המערך!</div>
         </div>
@@ -308,7 +308,6 @@
                 <div class="icon-container"><span class="text-xl">✈️</span></div>
                 <div><div class="font-bold text-gray-100">F-35i "אדיר"</div><div class="text-[11px] text-green-400">חמקן | מתחמק ממכ"ם האויב</div></div>
             </div>
-            <!-- REFUEL WEAPON -->
             <div id="btn-refuel" class="weapon-btn" onclick="setWeapon('refuel')">
                 <div class="icon-container"><span class="text-xl">⛽</span></div>
                 <div><div class="font-bold text-gray-100">מטוס תדלוק (בואינג 707)</div><div class="text-[11px] text-blue-400">לתדלוק מטוסינו באוויר</div></div>
@@ -337,11 +336,11 @@
         <div id="lebanon-attack-weapons" class="hidden-weapon-group flex-col gap-2">
             <div id="btn-f15" class="weapon-btn active" onclick="setWeapon('f15')">
                 <div class="icon-container"><span class="text-xl">✈️</span></div>
-                <div><div class="font-bold text-gray-100">מטוס קרב F-15</div><div class="text-[11px] text-blue-400">תקיפה אווירית | מתאים לעמדות</div></div>
+                <div><div class="font-bold text-gray-100">מטוס קרב F-15</div><div class="text-[11px] text-blue-400">תקיפה אווירית | מתאים למתחמים</div></div>
             </div>
             <div id="btn-artillery" class="weapon-btn ground" onclick="setWeapon('artillery')">
                 <div class="icon-container"><span class="text-xl">💥</span></div>
-                <div><div class="font-bold text-gray-100">ארטילריה מונחית</div><div class="text-[11px] text-orange-400">מושלם להשמדת משגרים ניידים</div></div>
+                <div><div class="font-bold text-gray-100">ארטילריה מונחית</div><div class="text-[11px] text-orange-400">מושלם להשמדת מטרות נייחות</div></div>
             </div>
             <div id="btn-tank" class="weapon-btn ground" onclick="setWeapon('tank')">
                 <div class="icon-container"><span class="text-xl">🚜</span></div>
@@ -522,23 +521,23 @@
     // --- 3. Campaign Data ---
     const levelsIran = {
         1: { title: "שלב 1: שליטה ימית", desc: "ספינות משמרות המהפכה במפרץ. פגע בהן במדויק עם טיל שיוט.", obj: "הטבע ספינות במפרץ.", type: "attack", defaultWeapon: 'plane' },
-        2: { title: "שלב 2: תשתיות כלכלה", desc: "חוות מכלי הנפט והגז באזור החוף האיראני.", obj: "פגע בחוות מכלי הנפט.", type: "attack", defaultWeapon: 'plane' },
-        3: { title: "שלב 3: מבצע תדלוק מורכב", desc: "מטוסי ה-F-35 שלנו בדרכם ליעד וזקוקים לדלק. שלח אליהם מטוסי בואינג (ראם).", obj: "תדלק את מטוסי ה-F-35 באוויר ע\"י לחיצה עליהם עם מטוס התדלוק.", type: "attack", defaultWeapon: 'refuel' }, 
-        4: { title: "שלב 4: עליונות אווירית", desc: "מטוסי קרב מסוג מיג באוויר. נשק רגיל לא יפגע בהם, השתמש בטיל נ\"מ.", obj: "הפל את מטוסי הקרב המהירים.", type: "attack", defaultWeapon: 'air2air' },
-        5: { title: "שלב 5: עיוורון מערכות", desc: "סוללות מכ\"ם (S-300) יירטו טילים! שלח F-35 חמקן.", obj: "השמד את מטרות המכ\"ם בסורק האדום.", type: "attack", defaultWeapon: 'plane' },
-        6: { title: "שלב 6: פרויקט הגרעין", desc: "המתקנים מבוצרים עמוק באדמה. פצצות רגילות לא יעזרו.", obj: "השמד את הבונקרים החצובים בהר עם חימוש חודר.", type: "attack", defaultWeapon: 'bunker' },
-        7: { title: "שלב 7: נחיל עוין (הגנה)", desc: "נחיל כטב\"מים לישראל. יתגלו *רק* במכ\"ם! שים לב לאזעקות על המפה.", obj: "יירט כטב\"מים עד ליעד.", type: "defense", defaultWeapon: 'arrow' },
-        8: { title: "שלב 8: בליסטיקה (הגנה)", desc: "מטח טילים בליסטיים מאיראן! שים לב לאזורי האזעקה והגן עליהם.", obj: "יירט טילים בליסטיים מהירים. הגב מהר!", type: "defense", defaultWeapon: 'arrow' }
+        2: { title: "שלב 2: מבצע תדלוק מורכב", desc: "מטוסי ה-F-35 שלנו בדרכם ליעד וזקוקים לדלק. שלח אליהם מטוסי בואינג (ראם).", obj: "תדלק את מטוסי ה-F-35 באוויר ע\"י לחיצה עליהם עם מטוס התדלוק.", type: "attack", defaultWeapon: 'refuel' }, 
+        3: { title: "שלב 3: עליונות אווירית", desc: "מטוסי קרב מסוג מיג באוויר. נשק רגיל לא יפגע בהם, השתמש בטיל נ\"מ.", obj: "הפל את מטוסי הקרב המהירים.", type: "attack", defaultWeapon: 'air2air' },
+        4: { title: "שלב 4: עיוורון מערכות", desc: "סוללות מכ\"ם (S-300) יירטו טילים! שלח F-35 חמקן.", obj: "השמד את מטרות המכ\"ם בסורק האדום.", type: "attack", defaultWeapon: 'plane' },
+        5: { title: "שלב 5: פרויקט הגרעין", desc: "המתקנים מבוצרים עמוק באדמה. פצצות רגילות לא יעזרו.", obj: "השמד את הבונקרים החצובים בהר עם חימוש חודר.", type: "attack", defaultWeapon: 'bunker' },
+        6: { title: "שלב 6: נחיל עוין (הגנה)", desc: "נחיל כטב\"מים לישראל. יתגלו *רק* במכ\"ם! שים לב לאזעקות על המפה.", obj: "יירט כטב\"מים עד ליעד.", type: "defense", defaultWeapon: 'arrow' },
+        7: { title: "שלב 7: בליסטיקה (הגנה)", desc: "מטח טילים בליסטיים מאיראן! שים לב לאזורי האזעקה והגן עליהם.", obj: "יירט טילים בליסטיים מהירים. הגב מהר!", type: "defense", defaultWeapon: 'arrow' },
+        8: { title: "שלב 8: סיכול 'הראש' (חמינאי)", desc: "משימת סיום! מצא את שיירת רכבי השרד ברחובות טהראן. המפה בזום מקסימלי: סרוק את העיר, אתר את השיירה השחורה בתנועה על כבישי העיר וחסל אותה.", obj: "גרור את המפה, מצא את השיירה בתנועה בכבישים, ותקוף ישירות.", type: "attack_vip", defaultWeapon: 'plane' }
     };
 
     const levelsLebanon = {
         1: { title: "שלב 1: עמדות תצפית", desc: "עמדות חיזבאללה מפוזרות לאורך הגדר. שלח F-15 להשמידן.", obj: "השמד עמדות תצפית בשטח לבנון.", type: "attack", defaultWeapon: 'f15' },
-        2: { title: "שלב 2: ציד משגרים", desc: "משגרים מוסתרים. חובה להשתמש בארטילריה מונחית!", obj: "השמד משגרי רקטות ניידים בעזרת ארטילריה.", type: "attack", defaultWeapon: 'artillery' },
+        2: { title: "שלב 2: מבצע 'סדר חדש' (סיכול נסראללה)", desc: "מזכ\"ל חיזבאללה, חסן נסראללה, אותר במתחם תת-קרקעי מבוצר בלב הדאחייה בביירות. שלח רביעיית F-15 להשמדת המתחם.", obj: "השמד את בונקר המפקדה המרכזי (יעד אדום).", type: "attack", defaultWeapon: 'f15' },
         3: { title: "שלב 3: חומת מגן (הגנה)", desc: "מטחי רקטות לעבר הצפון! שים לב לאזורי האזעקה האדומים המהבהבים.", obj: "יירט רקטות באמצעות כיפת ברזל.", type: "defense", defaultWeapon: 'irondome' },
-        4: { title: "שלב 4: תמרון קרקעי (שריון)", desc: "מפקדות תת-קרקעיות התגלו! שלח טנקים שיסעו ויירו פגז עוצמתי.", obj: "שלח טנקים לטהר את המפקדות.", type: "attack", defaultWeapon: 'tank' },
+        4: { title: "שלב 4: תמרון קרקעי (שריון)", desc: "פירים תת-קרקעיים התגלו! שלח טנקים שיסעו ויירו פגז עוצמתי להשמדתם.", obj: "שלח טנקים להשמיד את פירי המנהרות.", type: "attack", defaultWeapon: 'tank' },
         5: { title: "שלב 5: מגן אור (לייזר)", desc: "נחיל חודש לעבר ישראל! השתמש במערכת הלייזר לפגיעה מיידית באיומים.", obj: "יירט נחיל אטי באמצעות קרן לייזר מיידית.", type: "defense", defaultWeapon: 'laser' },
         6: { title: "שלב 6: טיהור כפרים (חי\"ר)", desc: "מחבלים מתבצרים בכפר. שלח כוח חי\"ר (מופיע כצוות) שיצעד ויפתח באש.", obj: "שלח כוחות רגליים (חי\"ר) לטהר את הכפרים.", type: "attack", defaultWeapon: 'soldier' },
-        7: { title: "שלב 7: נטרול מוקשים בגליל (הנדסה)", desc: "שדות מוקשים מסוכנים צמוד לגבול. שלח דחפור הנדסה (D9) לנטרלם.", obj: "שלח כוח הנדסה לנטרל מוקשים.", type: "attack", defaultWeapon: 'engineer' }
+        7: { title: "שלב 7: נטרול מוקשים בגליל (הנדסה)", desc: "שדות מוקשים מסוכנים צמוד לגבול. שלח דחפור הנדסה (D9) לנטרלם.", obj: "שלח כוח הנדסה לנטרל מוקשים נגד-טנקים.", type: "attack", defaultWeapon: 'engineer' }
     };
 
     // --- 4. Main Menu Logic ---
@@ -589,6 +588,8 @@
         map.setMaxBounds(null);
 
         let isDefense = (lvl.type === 'defense');
+        let isVip = (lvl.type === 'attack_vip');
+
         if (isDefense) {
             let defBounds = currentCampaign === 'iran' 
                 ? [[29.5, 34.0], [34.5, 41.5]] 
@@ -604,6 +605,15 @@
                     [defBounds[1][0] + 1.0, defBounds[1][1] + 1.0]
                 ]);
             }, 1300);
+        } else if (isVip) {
+            // Extreme zoom into Tehran. Start slightly off target.
+            map.flyTo([35.73, 51.41], 16, { duration: 1.5 });
+            setTimeout(() => {
+                map.setMinZoom(14); 
+                map.setMaxZoom(18); 
+                // Restrict bounds so they don't get lost in the desert
+                map.setMaxBounds([[35.50, 51.20], [35.90, 51.60]]);
+            }, 1600);
         } else {
             let attackBounds = currentCampaign === 'iran' ? boundsIran : boundsLebanon;
             map.flyToBounds(attackBounds, { duration: 1.2 });
@@ -619,8 +629,8 @@
             document.getElementById('modal-title').innerText = lvl.title;
             document.getElementById('modal-desc').innerText = lvl.desc;
             document.getElementById('modal-btn').innerText = "התחל משימה";
-            document.getElementById('mission-modal').className = 'mission-brief ' + (lvl.type === 'defense' ? 'urgent' : '');
-            document.getElementById('modal-btn').className = 'btn-start ' + (lvl.type === 'defense' ? 'urgent' : '');
+            document.getElementById('mission-modal').className = 'mission-brief ' + (lvl.type === 'defense' ? 'urgent' : (isVip ? 'urgent' : ''));
+            document.getElementById('modal-btn').className = 'btn-start ' + (lvl.type === 'defense' ? 'urgent' : (isVip ? 'urgent' : ''));
         }
     }
 
@@ -634,11 +644,11 @@
         
         if (currentCampaign === 'iran') {
             document.getElementById('ui-title-text').innerText = "חזית איראן - מעגל 3";
-            document.getElementById('sidebar').style.borderColor = (lvl.type === 'attack') ? '#3b82f6' : '#ef4444';
-            if (lvl.type === 'attack') {
+            document.getElementById('sidebar').style.borderColor = (lvl.type === 'attack' || lvl.type === 'attack_vip') ? '#3b82f6' : '#ef4444';
+            if (lvl.type === 'attack' || lvl.type === 'attack_vip') {
                 document.getElementById('iran-attack-weapons').classList.add('active-weapon-group');
-                document.getElementById('btn-refuel').style.display = (currentLevel === 3) ? 'flex' : 'none'; 
-                document.getElementById('btn-plane').style.display = (currentLevel === 3) ? 'none' : 'flex'; 
+                document.getElementById('btn-refuel').style.display = (currentLevel === 2) ? 'flex' : 'none'; 
+                document.getElementById('btn-plane').style.display = (currentLevel === 2) ? 'none' : 'flex'; 
                 
                 document.getElementById('tactical-panel').classList.remove('active');
                 document.getElementById('progress-container').style.display = 'flex';
@@ -685,30 +695,36 @@
         setupUIForLevel(lvl);
 
         // --- Spawn Targets ---
-        if (currentCampaign === 'iran' && lvl.type === 'attack') {
+        if (currentCampaign === 'iran' && (lvl.type === 'attack' || lvl.type === 'attack_vip')) {
             if (currentLevel === 1) { 
                 maxProgress = 3 + currentLoop;
                 for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'ship', lat: 25.0 + Math.random()*2.0, lng: 51.5 + Math.random()*4.0, radius: 14, active: true, dir: Math.random()>0.5?1:-1, speed: 0.003 * currentLoop });
             } else if (currentLevel === 2) { 
-                maxProgress = 4 + (currentLoop * 2);
-                const bases = [[29.2, 50.3], [28.9, 50.8], [27.0, 53.0]];
-                for(let i=0; i<maxProgress; i++) { let b = bases[i % bases.length]; targets.push({ id: i, type: 'oil', lat: b[0] + (Math.random()*0.4-0.2), lng: b[1] + (Math.random()*0.4-0.2), radius: 16, active: true }); }
-            } else if (currentLevel === 3) { 
                 maxProgress = 3 + currentLoop;
                 for(let i=0; i<maxProgress; i++) {
                     targets.push({ id: i, type: 'friendly_f35', lat: 31.0 + (Math.random()*2), lng: 38.0 + (Math.random()*1), radius: 18, active: true, speed: 0.003 * (1 + currentLoop*0.1) });
                 }
-            } else if (currentLevel === 4) { 
+            } else if (currentLevel === 3) { 
                 maxProgress = 2 + currentLoop;
                 for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'enemy_jet', lat: 31.0 + (i*1.5) + Math.random()*2, lng: 49.0 + Math.random()*5, radius: 10, active: true, dir: Math.random()>0.5?1:-1, speed: 0.008 * (1 + currentLoop*0.2) });
-            } else if (currentLevel === 5) { 
+            } else if (currentLevel === 4) { 
                 maxProgress = 2 + currentLoop;
                 const locs = [[35.68, 51.38], [32.65, 51.66], [29.59, 52.58], [36.2, 59.5], [30.2, 57.0]];
                 for(let i=0; i<maxProgress; i++) { let loc = locs[i % locs.length]; targets.push({ id: i, type: 'radar', lat: loc[0] + (Math.random()-0.5), lng: loc[1] + (Math.random()-0.5), radius: 12, active: true, cooldown: 0 }); }
-            } else if (currentLevel === 6) { 
+            } else if (currentLevel === 5) { 
                 maxProgress = 1 + currentLoop; const hp = 1 + currentLoop;
                 const locs = [[33.7, 51.7], [34.5, 50.5], [35.5, 53.0], [32.0, 54.0]];
                 for(let i=0; i<maxProgress; i++) { let loc = locs[i % locs.length]; targets.push({ id: i, type: 'bunker', lat: loc[0] + (Math.random()-0.5), lng: loc[1] + (Math.random()-0.5), radius: 22, active: true, maxHp: hp, hp: hp }); }
+            } else if (currentLevel === 8) {
+                // VIP Assassination - The Finale (Iran)
+                maxProgress = 1 + (currentLoop > 1 ? 1 : 0); 
+                // Path on real roads in Tehran (Approx Modares/Hemmat intersection loop)
+                const path1 = [[35.755, 51.410], [35.755, 51.430], [35.745, 51.430], [35.745, 51.410]]; 
+                targets.push({ id: 0, type: 'vip_iran', lat: 35.755, lng: 51.410, radius: 18, active: true, path: path1, pathIndex: 1, speed: 0.00008 * (1+currentLoop*0.5), visualAngle: 0 });
+                if (currentLoop > 1) {
+                    const path2 = [[35.740, 51.390], [35.740, 51.410], [35.730, 51.410], [35.730, 51.390]];
+                    targets.push({ id: 1, type: 'vip_iran_decoy', lat: 35.740, lng: 51.390, radius: 18, active: true, path: path2, pathIndex: 1, speed: 0.00008 * (1+currentLoop*0.5), visualAngle: 0 });
+                }
             }
         } 
         else if (currentCampaign === 'lebanon' && lvl.type === 'attack') {
@@ -716,11 +732,13 @@
                 maxProgress = 4 + currentLoop;
                 for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'outpost', lat: 33.2 + Math.random()*0.15, lng: 35.3 + Math.random()*0.2, radius: 12, active: true });
             } else if (currentLevel === 2) { 
-                maxProgress = 3 + currentLoop;
-                for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'launcher', lat: 33.25 + Math.random()*0.1, lng: 35.35 + Math.random()*0.15, radius: 14, active: true });
+                // VIP Assassination - Lebanon (Nasrallah Bunker)
+                maxProgress = 1;
+                let hp = 3 + currentLoop; // Requires multiple strikes
+                targets.push({ id: 0, type: 'vip_leb', lat: 33.85 + (Math.random()-0.5)*0.02, lng: 35.51 + (Math.random()-0.5)*0.02, radius: 25, active: true, maxHp: hp, hp: hp });
             } else if (currentLevel === 4) { 
                 maxProgress = 2 + currentLoop; const hp = 2 + currentLoop;
-                for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'hq', lat: 33.3 + Math.random()*0.1, lng: 35.4 + Math.random()*0.15, radius: 16, active: true, maxHp: hp, hp: hp });
+                for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'hq', lat: 33.3 + Math.random()*0.1, lng: 35.4 + Math.random()*0.15, radius: 18, active: true, maxHp: hp, hp: hp }); 
             } else if (currentLevel === 6) { 
                 maxProgress = 3 + currentLoop;
                 for(let i=0; i<maxProgress; i++) targets.push({ id: i, type: 'village', lat: 33.25 + Math.random()*0.1, lng: 35.4 + Math.random()*0.1, radius: 18, active: true });
@@ -731,7 +749,7 @@
         }
         else if (lvl.type === 'defense') {
             if(currentCampaign === 'iran') { 
-                maxProgress = (currentLevel === 7 ? 10 : 15) + (currentLoop * 5); 
+                maxProgress = (currentLevel === 6 ? 10 : 15) + (currentLoop * 5); 
             } else { 
                 maxProgress = (currentLevel === 3 ? 15 : 12) + (currentLoop * 3); 
             } 
@@ -764,6 +782,8 @@
                     ]);
                 }
             }, 1600);
+        } else if (lvl.type === 'attack_vip') {
+            // Handled already in showLevelModal with specific coordinates.
         }
     }
 
@@ -777,9 +797,9 @@
             const maxLvl = currentCampaign === 'iran' ? 8 : 7; 
             if (currentLevel > maxLvl) {
                 currentLevel = 1; currentLoop++;
-                document.getElementById('modal-title').innerText = "ניצחון בחזית!";
-                document.getElementById('modal-desc').innerText = `האויב משקם את כוחותיו. הקושי מזנק לרמה ${currentLoop}!`;
-                document.getElementById('modal-btn').innerText = "המשך למערכה הבאה";
+                document.getElementById('modal-title').innerText = "ניצחון מוחלט!";
+                document.getElementById('modal-desc').innerText = `האויב הושמד. אך השטח תוסס... הקושי מזנק לרמה ${currentLoop}!`;
+                document.getElementById('modal-btn').innerText = "המשך מערכה";
                 document.getElementById('mission-modal').className = 'mission-brief urgent';
                 document.getElementById('modal-overlay').style.display = 'flex';
             } else {
@@ -790,7 +810,7 @@
 
     function updateProgressUI() {
         const data = currentCampaign === 'iran' ? levelsIran : levelsLebanon;
-        if(data[currentLevel].type === 'attack') {
+        if(data[currentLevel].type === 'attack' || data[currentLevel].type === 'attack_vip') {
             document.getElementById('progress-text').innerText = `${progress}/${maxProgress}`;
         }
         if (progress >= maxProgress && isPlaying) levelComplete();
@@ -883,7 +903,7 @@
             this.lat = lat; this.lng = lng; this.type = type; this.particles = []; this.radius = 0; this.done = false;
             let cP = '#ff4d00', cS = '#ffaa00', pC = 40, sM = 1;
             
-            if (type === 'bunker' || type === 'hq') { this.maxRadius = 100; pC = 60; sM = 2.0; cP = '#ff0000'; cS = '#fff'; triggerShake('heavy'); }
+            if (type === 'bunker' || type === 'hq' || type === 'vip_leb' || type === 'vip_iran') { this.maxRadius = 130; pC = 80; sM = 2.5; cP = '#ff0000'; cS = '#fff'; triggerShake('heavy'); }
             else if (type === 'oil') { this.maxRadius = 120; pC = 70; sM = 1.8; cP = '#f97316'; cS = '#ef4444'; triggerShake('heavy'); }
             else if (type === 'flak') { this.maxRadius = 60; pC = 40; sM = 1.2; cP = '#fbbf24'; cS = '#fff'; triggerShake('light'); }
             else if (type === 'water') { this.maxRadius = 40; pC = 30; sM = 1.0; cP = '#38bdf8'; cS = '#fff'; triggerShake('light'); }
@@ -984,11 +1004,11 @@
             else this.speed = 0.03;
         }
         update() {
-            if (this.type === 'air2air' && currentCampaign === 'iran' && currentLevel === 4) { 
+            if (this.type === 'air2air' && currentCampaign === 'iran' && currentLevel === 3) { 
                 let closestJet = targets.find(t => t.active && t.type === 'enemy_jet');
                 if (closestJet) { this.tLat = closestJet.lat; this.tLng = closestJet.lng; }
             }
-            if (this.type === 'refuel' && currentCampaign === 'iran' && currentLevel === 3) {
+            if (this.type === 'refuel' && currentCampaign === 'iran' && currentLevel === 2) {
                 let closestF35 = targets.find(t => t.active && t.type === 'friendly_f35');
                 if (closestF35) { this.tLat = closestF35.lat; this.tLng = closestF35.lng; }
             }
@@ -1135,11 +1155,11 @@
                 ctx.fillStyle = '#475569'; ctx.fillRect(-28, -0.5, 10, 1);
                 ctx.fillStyle = '#f59e0b'; ctx.fillRect(-30, -1, 3, 2); // Boom nozzle
                 
-            } else { // --- ENHANCED F-35 PLANE ---
+            } else { // --- ENHANCED F-35 / F-15 PLANE ---
                 ctx.rotate(Math.atan2(this.ty - this.y, this.tx - this.x)); 
                 ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 8;
                 
-                // F-35 Silhouette
+                // Plane Silhouette
                 ctx.fillStyle = '#1e293b'; // Slate 800
                 ctx.beginPath(); 
                 ctx.moveTo(18, 0); // Nose
@@ -1203,7 +1223,7 @@
     class EnemyThreat {
         constructor() {
             if (currentCampaign === 'iran') {
-                this.isDrone = currentLevel === 7;
+                this.isDrone = currentLevel === 6;
                 const spawnZones = [{ lat: 34.0, lng: 38.0 }, { lat: 33.0, lng: 43.0 }, { lat: 26.0, lng: 44.0 }];
                 let zone = spawnZones[Math.floor(Math.random() * spawnZones.length)];
                 this.lat = zone.lat + (Math.random()*4 - 2); this.lng = zone.lng + (Math.random()*4 - 2);
@@ -1311,20 +1331,29 @@
 
             if (t.active && Math.hypot(ptTgt.x - ptImp.x, ptTgt.y - ptImp.y) < t.radius * hitMultiplier) {
                 if (currentCampaign === 'iran') {
-                    if (currentLevel === 1 || currentLevel === 2 || currentLevel === 5) {
+                    if (currentLevel === 1 || currentLevel === 4) {
                         t.active = false; showFloatingText('מטרה הושמדה!', ptTgt.x, ptTgt.y - 20, '#4ade80'); progress++; updateProgressUI();
-                        if (currentLevel === 2) { explosions.push(new Explosion(impLat, impLng, 'oil')); isWater = false; wType = 'oil'; }
-                    } else if (currentLevel === 3 && t.type === 'friendly_f35') {
+                    } else if (currentLevel === 8 && t.type.startsWith('vip_iran')) {
+                        if (wType === 'plane' || wType === 'missile' || wType === 'bunker') {
+                            t.active = false;
+                            if (t.type === 'vip_iran') {
+                                showFloatingText('הראש חוסל בלב העיר!', ptTgt.x, ptTgt.y - 20, '#ef4444');
+                                progress++; updateProgressUI();
+                            } else {
+                                showFloatingText('פגעת בשיירת דמה!', ptTgt.x, ptTgt.y - 20, '#f59e0b');
+                            }
+                        } else showFloatingText('נשק לא מתאים!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
+                    } else if (currentLevel === 2 && t.type === 'friendly_f35') {
                         if (wType === 'refuel') { 
                             t.active = false; 
                             showFloatingText('תודלק בהצלחה! ⛽', ptTgt.x, ptTgt.y - 20, '#4ade80'); 
                             progress++; updateProgressUI(); 
                         } 
-                        else showFloatingText('סכנה! אש כוחותינו / נשק שגוי!', ptTgt.x, ptTgt.y - 20, '#ef4444');
-                    } else if (currentLevel === 4 && t.type === 'enemy_jet') {
+                        else showFloatingText('סכנה! אש כוחותינו!', ptTgt.x, ptTgt.y - 20, '#ef4444');
+                    } else if (currentLevel === 3 && t.type === 'enemy_jet') {
                         if (wType === 'air2air') { t.active = false; showFloatingText('מטוס הופל!', ptTgt.x, ptTgt.y - 20, '#38bdf8'); progress++; updateProgressUI(); } 
                         else showFloatingText('נשק שגוי!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
-                    } else if (currentLevel === 6 && t.type === 'bunker') {
+                    } else if (currentLevel === 5 && t.type === 'bunker') {
                         if (wType === 'bunker') { t.hp--; if (t.hp <= 0) { t.active = false; showFloatingText('בונקר הושמד!', ptTgt.x, ptTgt.y - 20, '#ef4444'); progress++; updateProgressUI(); } else showFloatingText('פגיעה! נדרש עוד!', ptTgt.x, ptTgt.y - 20, '#f59e0b'); } 
                         else showFloatingText('נשק לא חודר!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
                     }
@@ -1333,11 +1362,17 @@
                     if (currentLevel === 1 && t.type === 'outpost') {
                         if (wType === 'f15' || wType === 'artillery') { t.active = false; showFloatingText('עמדה הושמדה!', ptTgt.x, ptTgt.y - 20, '#4ade80'); progress++; updateProgressUI(); }
                         else showFloatingText('חובה מטוסי F15 או ארטילריה!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
-                    } else if (currentLevel === 2 && t.type === 'launcher') {
-                        if (wType === 'artillery') { t.active = false; showFloatingText('משגר הושמד!', ptTgt.x, ptTgt.y - 20, '#4ade80'); progress++; updateProgressUI(); }
-                        else showFloatingText('נדרשת ארטילריה!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
+                    } else if (currentLevel === 2 && t.type === 'vip_leb') {
+                        if (wType === 'f15' || wType === 'bunker') {
+                            t.hp--;
+                            if (t.hp <= 0) {
+                                t.active = false;
+                                showFloatingText('היעד חוסל בבונקר!', ptTgt.x, ptTgt.y - 20, '#ef4444');
+                                progress++; updateProgressUI();
+                            } else showFloatingText('פגיעה עמוקה! תקוף שוב!', ptTgt.x, ptTgt.y - 20, '#f59e0b');
+                        } else showFloatingText('נדרשת הפצצה אווירית (F-15)!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
                     } else if (currentLevel === 4 && t.type === 'hq') {
-                        if (wType === 'tank_shell') { t.hp--; if(t.hp <= 0) { t.active = false; showFloatingText('תת-קרקע טוהר!', ptTgt.x, ptTgt.y - 20, '#ef4444'); progress++; updateProgressUI(); } else showFloatingText('פגיעה! עוד פגז!', ptTgt.x, ptTgt.y - 20, '#f59e0b'); }
+                        if (wType === 'tank_shell') { t.hp--; if(t.hp <= 0) { t.active = false; showFloatingText('פיר מנהרה הושמד!', ptTgt.x, ptTgt.y - 20, '#ef4444'); progress++; updateProgressUI(); } else showFloatingText('פגיעה! עוד פגז!', ptTgt.x, ptTgt.y - 20, '#f59e0b'); }
                         else showFloatingText('חובה פגז של טנק!', ptTgt.x, ptTgt.y - 20, '#94a3b8');
                     } else if (currentLevel === 6 && t.type === 'village') {
                         if (wType === 'soldier_burst') { t.active = false; showFloatingText('הכפר טוהר!', ptTgt.x, ptTgt.y - 20, '#4ade80'); progress++; updateProgressUI(); }
@@ -1352,8 +1387,14 @@
             }
         });
         
+        let expType = 'normal';
+        if (isWater) expType = 'water';
+        else if (wType === 'bunker' || wType === 'hq') expType = 'bunker';
+        else if (wType === 'f15' && currentCampaign === 'lebanon' && currentLevel === 2) expType = 'vip_leb';
+        else if (wType === 'plane' && currentCampaign === 'iran' && currentLevel === 8) expType = 'vip_iran';
+
         if(wType !== 'oil' && wType !== 'soldier_burst' && wType !== 'soldier' && wType !== 'engineer' && wType !== 'engineer_defuse' && wType !== 'refuel') {
-            explosions.push(new Explosion(impLat, impLng, isWater ? 'water' : ((wType === 'bunker' || wType === 'hq') ? 'bunker' : 'normal')));
+            explosions.push(new Explosion(impLat, impLng, expType));
         }
         if (wType === 'engineer_defuse') explosions.push(new Explosion(impLat, impLng, 'defuse')); 
 
@@ -1390,8 +1431,12 @@
         let isrCenter = map.latLngToContainerPoint(centerLL);
         let edgePt = map.latLngToContainerPoint([centerLL[0] + RADAR_RANGE_DEG, centerLL[1]]);
         let radarRadiusPx = Math.abs(edgePt.y - isrCenter.y);
-        drawRadarSweep(isrCenter.x, isrCenter.y, radarRadiusPx, '56, 189, 248');
-        ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 16px Heebo'; ctx.textAlign = 'center'; ctx.fillText(currentCampaign === 'iran' ? 'מגן ישראל' : 'פיקוד צפון', isrCenter.x, isrCenter.y + 90);
+        
+        // Hide large Israel radar during VIP Assassination to not clutter the zoomed-in map
+        if (!(currentCampaign === 'iran' && currentLevel === 8)) {
+            drawRadarSweep(isrCenter.x, isrCenter.y, radarRadiusPx, '56, 189, 248');
+            ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 16px Heebo'; ctx.textAlign = 'center'; ctx.fillText(currentCampaign === 'iran' ? 'מגן ישראל' : 'פיקוד צפון', isrCenter.x, isrCenter.y + 90);
+        }
 
         targets.forEach(t => {
             if (t.active) {
@@ -1401,9 +1446,27 @@
                     t.lng += t.speed; 
                     if (t.lng > 46.0) { t.lng = 38.0; t.lat += (Math.random()-0.5)*0.5; } 
                 }
+                else if (t.type.startsWith('vip_iran')) {
+                    // Update movement along paths
+                    let p1 = map.latLngToContainerPoint([t.lat, t.lng]);
+                    let destLL = t.path[t.pathIndex];
+                    let p2 = map.latLngToContainerPoint(destLL);
+                    
+                    let dx = destLL[1] - t.lng;
+                    let dy = destLL[0] - t.lat;
+                    let dist = Math.hypot(dx, dy);
+                    
+                    if (dist < t.speed) {
+                        t.pathIndex = (t.pathIndex + 1) % t.path.length;
+                    } else {
+                        t.lng += (dx/dist) * t.speed;
+                        t.lat += (dy/dist) * t.speed;
+                    }
+                    t.visualAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                }
                 else if (t.type === 'radar') {
                     if (t.cooldown > 0) t.cooldown--;
-                    if (currentCampaign === 'iran' && currentLevel === 5 && t.cooldown === 0) {
+                    if (currentCampaign === 'iran' && currentLevel === 4 && t.cooldown === 0) {
                         let pt = map.latLngToContainerPoint([t.lat, t.lng]);
                         projectiles.forEach(p => {
                             if (!p.stealth && !p.done && Math.hypot(p.x - pt.x, p.y - pt.y) < t.radius * 3.5) { 
@@ -1472,39 +1535,42 @@
                         ctx.fillText('⛽ דלק נמוך', 0, -20);
                     }
 
-                } else if (t.type === 'oil') {
-                    // --- ENHANCED OIL FACILITIES (TANKS & FLARE STACK) ---
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+                } else if (t.type.startsWith('vip_iran')) {
+                    // --- ASSASSINATION TARGET: VIP CONVOY (IRAN) ---
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+                    ctx.rotate(t.visualAngle);
                     
-                    // Connecting pipes
-                    ctx.fillStyle = '#475569'; ctx.fillRect(-10, -2, 20, 2);
+                    // Main SUV
+                    ctx.fillStyle = '#09090b'; // Black
+                    ctx.fillRect(-10, -5, 20, 10); // Body
+                    ctx.fillStyle = '#1c1917'; // Tinted windows
+                    ctx.fillRect(-4, -4, 10, 8); 
                     
-                    // 3D Storage Tanks
-                    let grad1 = ctx.createLinearGradient(-8, -10, 0, -10);
-                    grad1.addColorStop(0, '#94a3b8'); grad1.addColorStop(1, '#e2e8f0');
-                    ctx.fillStyle = grad1; ctx.beginPath(); ctx.arc(-8, -6, 5, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = grad1; ctx.beginPath(); ctx.arc(8, -6, 5, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = grad1; ctx.beginPath(); ctx.arc(0, 6, 6, 0, Math.PI*2); ctx.fill();
+                    // Headlights (blinking)
+                    if (Date.now() % 400 < 200) {
+                        ctx.fillStyle = '#fde047'; ctx.shadowColor = '#fde047'; ctx.shadowBlur = 10;
+                        ctx.fillRect(10, -4, 2, 2); ctx.fillRect(10, 2, 2, 2); 
+                    }
                     
+                    // Tail lights
+                    ctx.fillStyle = '#ef4444'; ctx.shadowBlur = 0;
+                    ctx.fillRect(-10, -4, 2, 2); ctx.fillRect(-10, 2, 2, 2);
+                    
+                    // Escort SUVs (smaller, behind and in front)
+                    ctx.fillStyle = '#18181b';
+                    ctx.fillRect(-26, -4, 12, 8); // Back escort
+                    ctx.fillRect(16, -4, 12, 8);  // Front escort
+                    
+                    ctx.restore(); // Undo rotation so text doesn't flip
+                    ctx.save();
+                    ctx.translate(t.x, t.y);
+
+                    // Floating target marker
+                    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(-4, -22); ctx.lineTo(4, -22); ctx.fill();
+                    ctx.font = 'bold 12px Heebo'; ctx.textAlign = 'center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 4;
+                    ctx.fillText(t.type === 'vip_iran' ? 'שיירת המנהיג' : 'שיירת דמה', 0, -25);
                     ctx.shadowBlur = 0;
-                    
-                    // Flare Stack Tower (מגדל הלפיד)
-                    ctx.fillStyle = '#1e293b'; ctx.fillRect(-14, 0, 2, -15);
-                    
-                    // Flickering Flame
-                    let flicker = (Math.sin(Date.now() / 50) + 1) / 2; // oscillates between 0 and 1 rapidly
-                    ctx.shadowColor = '#f97316'; ctx.shadowBlur = 10 + flicker * 10;
-                    
-                    ctx.fillStyle = '#fef08a'; // Inner yellow flame
-                    ctx.beginPath(); ctx.arc(-13, -16, 2 + flicker, 0, Math.PI*2); ctx.fill();
-                    
-                    ctx.fillStyle = `rgba(249, 115, 22, ${0.5 + flicker * 0.5})`; // Outer orange flame
-                    ctx.beginPath(); ctx.arc(-13, -16, 4 + flicker*2, 0, Math.PI*2); ctx.fill();
-                    
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#f97316'; ctx.font = 'bold 11px Heebo'; ctx.textAlign = 'center'; 
-                    ctx.fillText('חוות נפט', 0, 18);
-                
+
                 } else if(t.type === 'radar') {
                     ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
                     ctx.fillStyle = '#3f6212'; ctx.fillRect(-14, -8, 28, 16);
@@ -1544,25 +1610,57 @@
                     ctx.strokeStyle = '#000'; ctx.strokeRect(-15, 20, 30, 4);
                     ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px Heebo'; ctx.textAlign = 'center'; ctx.fillText('מתקן מבוצר', 0, -20);
                     
-                } else if (t.type === 'outpost') {
-                    // --- ENHANCED OUTPOST (PILLBOX) WITH SEARCHLIGHT ---
+                } else if (t.type === 'vip_leb') {
+                    // --- ASSASSINATION TARGET: NASRALLAH BUNKER (LEBANON) ---
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 5;
                     
-                    // Concrete Base
+                    // Massive underground complex base
+                    ctx.fillStyle = '#18181b';
+                    ctx.beginPath(); ctx.moveTo(-25, -12); ctx.lineTo(25, -12); ctx.lineTo(30, 12); ctx.lineTo(-30, 12); ctx.closePath(); ctx.fill();
+                    
+                    // Yellow accents (Hezbollah theme)
+                    ctx.fillStyle = '#facc15'; 
+                    ctx.fillRect(-30, 10, 60, 2);
+                    
+                    // Deep entrance shafts
+                    ctx.fillStyle = '#000'; 
+                    ctx.fillRect(-15, -4, 10, 12);
+                    ctx.fillRect(5, -4, 10, 12);
+                    
+                    // Target crosshair marking the center
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+                    
+                    // Rotate the crosshair slowly
+                    ctx.save(); ctx.rotate((Date.now() / 1500) % (Math.PI * 2));
+                    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-24, 0); ctx.lineTo(24, 0); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, 24); ctx.stroke();
+                    ctx.restore();
+
+                    // HP Bar
+                    let hpPct = t.hp / t.maxHp; 
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(-20, 18, 40, 5); 
+                    ctx.fillStyle = '#22c55e'; ctx.fillRect(-20, 18, 40 * hpPct, 5);
+                    ctx.strokeStyle = '#000'; ctx.strokeRect(-20, 18, 40, 5);
+                    
+                    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 12px Heebo'; ctx.textAlign = 'center'; 
+                    ctx.fillText('מפקדת המזכ"ל', 0, -18);
+                    
+                } else if (t.type === 'outpost') {
                     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
                     ctx.fillStyle = '#78716c'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
                     
-                    // Camouflage Roof
                     ctx.fillStyle = '#4d7c0f'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
                     ctx.shadowBlur = 0;
                     
-                    // Rotating Searchlight
-                    let sweepAngle = (Date.now() / 600) + t.id; // offset by ID so they don't all look identical
+                    let sweepAngle = (Date.now() / 600) + t.id; 
                     ctx.save();
                     ctx.rotate(sweepAngle);
                     
                     let lightGrad = ctx.createLinearGradient(0, 0, 40, 0);
-                    lightGrad.addColorStop(0, 'rgba(253, 224, 71, 0.6)'); // Yellow bright
-                    lightGrad.addColorStop(1, 'rgba(253, 224, 71, 0)');   // Transparent
+                    lightGrad.addColorStop(0, 'rgba(253, 224, 71, 0.6)'); 
+                    lightGrad.addColorStop(1, 'rgba(253, 224, 71, 0)');   
                     
                     ctx.fillStyle = lightGrad;
                     ctx.beginPath();
@@ -1577,29 +1675,33 @@
                     ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px Heebo'; ctx.textAlign = 'center'; 
                     ctx.fillText('עמדת תצפית', 0, -12);
                 
-                } else if (t.type === 'launcher') {
-                    ctx.rotate(-Math.PI / 5); 
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 3;
-                    ctx.fillStyle = '#27272a'; ctx.fillRect(-12, -5.5, 24, 11);
-                    ctx.fillStyle = '#09090b';
-                    [-9, -2, 5].forEach(wx => { ctx.fillRect(wx, -7.5, 5, 2); ctx.fillRect(wx, 5.5, 5, 2); });
-                    ctx.fillStyle = '#3f6212'; ctx.fillRect(6, -4.5, 6, 9);
-                    ctx.fillStyle = '#60a5fa'; ctx.fillRect(9, -3.5, 2, 7);
-                    ctx.shadowBlur = 0; 
-                    ctx.fillStyle = '#3f3f46'; ctx.fillRect(-10, -3.5, 14, 7);
-                    ctx.fillStyle = '#18181b'; ctx.fillRect(-8, -4.5, 12, 9);
-                    for (let y = -3.5; y <= 3.5; y += 2.5) {
-                        ctx.fillStyle = '#3f3f46'; ctx.fillRect(-8, y - 0.5, 12, 1.5);
-                        ctx.fillStyle = '#ef4444'; ctx.fillRect(4, y - 0.5, 2, 1.5);
-                    }
-                    ctx.rotate(Math.PI / 5);
-                    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px Heebo'; ctx.textAlign = 'center'; ctx.fillText('משגר רקטות', 0, -18);
-                    
                 } else if (t.type === 'hq') {
-                    ctx.fillStyle = '#3f3f46'; ctx.beginPath(); ctx.moveTo(-12, 6); ctx.lineTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(12, 6); ctx.fill();
-                    ctx.fillStyle = '#09090b'; ctx.beginPath(); ctx.arc(0, -2, 4, 0, Math.PI*2); ctx.fill();
-                    let hpPct = t.hp / t.maxHp; ctx.fillStyle = '#ef4444'; ctx.fillRect(-12, 10, 24, 4); ctx.fillStyle = '#22c55e'; ctx.fillRect(-12, 10, 24 * hpPct, 4);
-                    ctx.fillStyle = '#ef4444'; ctx.font = '10px Heebo'; ctx.fillText('מפקדה תת-קרקעית', 0, -12);
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+                    
+                    ctx.fillStyle = '#57534e'; 
+                    ctx.beginPath(); ctx.ellipse(0, 0, 16, 12, 0, 0, Math.PI*2); ctx.fill();
+                    
+                    ctx.fillStyle = '#78716c'; 
+                    ctx.fillRect(-8, -6, 16, 12);
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#09090b'; 
+                    ctx.fillRect(-6, -4, 12, 8);
+                    
+                    ctx.fillStyle = '#4d7c0f'; 
+                    ctx.globalAlpha = 0.8;
+                    ctx.beginPath(); 
+                    ctx.moveTo(-10, -8); ctx.lineTo(2, -8); ctx.lineTo(6, 2); ctx.lineTo(-8, 6); ctx.closePath(); ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                    
+                    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(-4, -16); ctx.lineTo(4, -16); ctx.fill();
+
+                    let hpPct = t.hp / t.maxHp; 
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(-12, 12, 24, 4); 
+                    ctx.fillStyle = '#22c55e'; ctx.fillRect(-12, 12, 24 * hpPct, 4);
+                    
+                    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px Heebo'; ctx.textAlign = 'center'; 
+                    ctx.fillText('פיר מנהרה', 0, -20);
                 
                 } else if (t.type === 'village') {
                     ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 3;
@@ -1617,13 +1719,21 @@
                 
                 } else if (t.type === 'mine') {
                     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
-                    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#1c1917'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI*2); ctx.fill();
-                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
-                    ctx.beginPath(); ctx.moveTo(-6,-6); ctx.lineTo(6,6); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(6,-6); ctx.lineTo(-6,6); ctx.stroke();
+                    ctx.fillStyle = '#4d7c0f'; 
+                    ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#2f4f4f'; 
+                    ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#ef4444'; ctx.font = '10px Heebo'; ctx.fillText('מוקש', 0, -12);
+                    ctx.fillStyle = '#fca5a5'; 
+                    for(let i=0; i<4; i++) {
+                        let angle = (i * Math.PI) / 2;
+                        ctx.beginPath(); ctx.arc(Math.cos(angle)*5, Math.sin(angle)*5, 1, 0, Math.PI*2); ctx.fill();
+                    }
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(-2,-2); ctx.lineTo(2,2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(2,-2); ctx.lineTo(-2,2); ctx.stroke();
+                    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px Heebo'; ctx.textAlign = 'center'; 
+                    ctx.fillText('מוקש נ"ט', 0, -12);
                 }
                 ctx.restore();
             }
