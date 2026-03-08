@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת תקיפה והגנה - זירת המזרח התיכון</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;500;800;900&display=swap');
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            margin: 0;
+            user-select: none;
+        }
+
+        #game-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 340px;
+            background: rgba(5, 10, 15, 0.95);
+            border-left: 2px solid #3b82f6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .header-title {
+            color: #38bdf8;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+            font-weight: 900;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 10px;
+        }
+
+        .header-title.alert {
+            color: #ef4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+            border-bottom-color: #ef4444;
+        }
+
+        .weapon-btn {
+            background: linear-gradient(145deg, #0f172a, #020617);
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .weapon-btn:hover { border-color: #38bdf8; transform: translateX(-5px); }
+        .weapon-btn.active {
+            background: linear-gradient(145deg, #1e3a8a, #0f172a);
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+        
+        .weapon-btn.defense { border-color: #f59e0b; }
+        .weapon-btn.defense.active {
+            background: linear-gradient(145deg, #78350f, #451a03);
+            border-color: #fbbf24;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .icon-container {
+            width: 40px; height: 40px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 5px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid #475569;
+        }
+
+        /* Map & Canvas */
+        #map-wrapper {
+            position: relative; flex-grow: 1; overflow: hidden; cursor: crosshair;
+        }
+
+        #leaflet-map {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;
+            filter: saturate(0.7) contrast(1.2) brightness(0.8) hue-rotate(-5deg);
+        }
+
+        #game-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; pointer-events: none;
+        }
+
+        #click-catcher {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 20;
+        }
+
+        /* Modal / Overlays */
+        #modal-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); z-index: 200;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .mission-brief {
+            background: #0f172a; border: 2px solid #38bdf8;
+            border-radius: 12px; padding: 40px; max-width: 500px;
+            text-align: center; box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+        }
+
+        .mission-brief h2 { color: #38bdf8; font-size: 2rem; font-weight: 900; margin-bottom: 10px; }
+        .mission-brief.urgent { border-color: #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.3); }
+        .mission-brief.urgent h2 { color: #ef4444; }
+
+        .btn-start {
+            background: #38bdf8; color: #000; font-weight: bold; padding: 12px 30px;
+            border-radius: 6px; margin-top: 20px; cursor: pointer; font-size: 1.2rem;
+            transition: all 0.2s; border: none;
+        }
+        .btn-start:hover { background: #7dd3fc; transform: scale(1.05); }
+        .btn-start.urgent { background: #ef4444; color: white; }
+        .btn-start.urgent:hover { background: #f87171; }
+
+        /* Screen Shake */
+        .shake-light { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+        .shake-heavy { animation: shakeHeavy 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(3px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-5px, 3px, 0); }
+            40%, 60% { transform: translate3d(5px, -3px, 0); }
+        }
+        @keyframes shakeHeavy {
+            10%, 90% { transform: translate3d(-10px, 10px, 0); }
+            20%, 80% { transform: translate3d(15px, -15px, 0); }
+            30%, 50%, 70% { transform: translate3d(-20px, 20px, 0); }
+            40%, 60% { transform: translate3d(20px, -20px, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div>
+            <h1 class="text-2xl header-title mb-1" id="ui-title">מערכת תקיפה מרחבית</h1>
+            <p class="text-xs text-gray-400 mb-4" id="ui-subtitle">שלב נוכחי: ממתין לפקודה</p>
+        </div>
+
+        <!-- Attack Weapons (Levels 1 & 2) -->
+        <div id="attack-weapons" class="flex flex-col gap-3">
+            <div id="btn-plane" class="weapon-btn active" onclick="setWeapon('plane')">
+                <div class="icon-container"><span class="text-xl">✈️</span></div>
+                <div>
+                    <div class="font-bold text-gray-100">F-35i "אדיר"</div>
+                    <div class="text-xs text-green-400">חמקן | הפצצה מדויקת</div>
+                </div>
+            </div>
+
+            <div id="btn-missile" class="weapon-btn" onclick="setWeapon('missile')">
+                <div class="icon-container"><span class="text-xl">🚀</span></div>
+                <div>
+                    <div class="font-bold text-gray-100">טיל שיוט ימי</div>
+                    <div class="text-xs text-orange-400">מהיר | סכנת יירוט</div>
+                </div>
+            </div>
+
+            <div id="btn-bunker" class="weapon-btn" onclick="setWeapon('bunker')">
+                <div class="icon-container"><span class="text-xl">💣</span></div>
+                <div>
+                    <div class="font-bold text-gray-100">חודר בונקרים</div>
+                    <div class="text-xs text-red-400">נזק אדיר | למטרות עומק</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Defense Weapons (Level 3) -->
+        <div id="defense-weapons" class="hidden flex-col gap-3">
+            <div id="btn-arrow" class="weapon-btn defense active">
+                <div class="icon-container"><span class="text-xl">🛡️</span></div>
+                <div>
+                    <div class="font-bold text-gray-100">מערכת "חץ 3"</div>
+                    <div class="text-xs text-yellow-400">יירוט אקסו-אטמוספרי</div>
+                    <div class="text-xs text-gray-400 mt-1">לחץ על המפה ליירוט טילים נכנסים</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-auto bg-gray-900 border border-gray-700 rounded p-4 text-sm">
+            <div class="font-bold text-white mb-2 pb-1 border-b border-gray-700">מטרת משימה:</div>
+            <div id="mission-objective" class="text-gray-300 mb-4 leading-relaxed">טוען משימה...</div>
+            
+            <div class="flex justify-between items-center bg-black p-2 rounded border border-gray-800">
+                <span class="text-gray-400 text-xs">התקדמות:</span>
+                <span id="progress-text" class="text-white font-bold text-lg">0/3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Area -->
+    <div id="map-wrapper">
+        <div id="leaflet-map"></div>
+        <canvas id="game-canvas"></canvas>
+        <div id="click-catcher"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay">
+        <div id="mission-modal" class="mission-brief">
+            <h2 id="modal-title">ברוך הבא למפקדה</h2>
+            <p id="modal-desc" class="text-gray-300 text-lg my-4 leading-relaxed">המזרח התיכון בוער. עליך לבצע סדרת משימות מורכבות בעומק שטח האויב ולהגן על הבית.</p>
+            <button id="modal-btn" class="btn-start" onclick="startLevel()">התחל משימה</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. Map Initialization ---
+    // Centered to show both Israel (left) and Iran (right)
+    const map = L.map('leaflet-map', {
+        zoomControl: false, dragging: false, scrollWheelZoom: false,
+        doubleClickZoom: false, boxZoom: false, keyboard: false
+    }).setView([32.5, 43.0], 5);
+
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    }).addTo(map);
+
+    // --- 2. Canvas & State Setup ---
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const wrapper = document.getElementById('map-wrapper');
+    const clickCatcher = document.getElementById('click-catcher');
+    
+    let width, height;
+    let isPlaying = false;
+    let currentLevel = 1;
+    let currentWeapon = 'plane';
+    let progress = 0;
+    let maxProgress = 0;
+    
+    // Game Entities
+    let projectiles = [];
+    let explosions = [];
+    let craters = [];
+    let targets = [];
+    let enemyMissiles = [];
+    let flakClouds = [];
+    let interceptors = []; // Enemy SAMs
+    
+    // Base Locations (relative to screen width/height)
+    let israelBase = { x: 0, y: 0 };
+    let carrierBase = { x: 0, y: 0 };
+
+    const levelsData = {
+        1: {
+            title: "שלב 1: עיוורון חלקי",
+            desc: "מערך ההגנה האווירית של האויב מאיים על מטוסינו. השמד 3 סוללות מכ\"ם נ\"מ מתקדמות כדי לפתוח את הנתיב.",
+            objective: "השמד את כל 3 מטרות המכ\"ם האדומות.",
+            type: "attack"
+        },
+        2: {
+            title: "שלב 2: הלב הפועם",
+            desc: "הנתיב פנוי. המודיעין איתר את מתקן הגרעין התת-קרקעי באזור איספהאן. עליך להשמיד אותו לחלוטין.",
+            objective: "השתמש בפצצת חודר בונקרים בלבד כדי להשמיד את המתקן המבוצר.",
+            type: "attack"
+        },
+        3: {
+            title: "שלב 3: חומת אש (הגנה)",
+            desc: "האויב מגיב באש! מטח טילים בליסטיים כבדים שוגר לעבר ישראל. עבור למערכת החץ והגן על המדינה!",
+            objective: "יירט 15 טילים בליסטיים באוויר. לחץ על המפה כדי ליצור פיצוצי נ\"מ (פלאק) בנתיב הטילים.",
+            type: "defense"
+        }
+    };
+
+    function resize() {
+        width = wrapper.clientWidth;
+        height = wrapper.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+        
+        israelBase = { x: width * 0.15, y: height * 0.65 };
+        carrierBase = { x: width * 0.4, y: height * 0.9 }; // Persian Gulf/Arabian Sea
+    }
+    window.addEventListener('resize', resize);
+
+    // --- 3. Level Management ---
+    
+    function showModal(title, desc, btnText, isUrgent = false) {
+        isPlaying = false;
+        document.getElementById('modal-overlay').style.display = 'flex';
+        const modal = document.getElementById('mission-modal');
+        const btn = document.getElementById('modal-btn');
+        
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-desc').innerText = desc;
+        btn.innerText = btnText;
+        
+        if (isUrgent) {
+            modal.classList.add('urgent');
+            btn.classList.add('urgent');
+        } else {
+            modal.classList.remove('urgent');
+            btn.classList.remove('urgent');
+        }
+    }
+
+    function startLevel() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        isPlaying = true;
+        progress = 0;
+        
+        projectiles = []; explosions = []; enemyMissiles = []; flakClouds = []; targets = []; interceptors = [];
+        
+        const lvl = levelsData[currentLevel];
+        document.getElementById('ui-subtitle').innerText = lvl.title;
+        document.getElementById('mission-objective').innerText = lvl.objective;
+        
+        if (lvl.type === 'attack') {
+            document.getElementById('attack-weapons').style.display = 'flex';
+            document.getElementById('defense-weapons').style.display = 'none';
+            document.getElementById('sidebar').style.borderColor = '#3b82f6';
+            document.getElementById('ui-title').innerText = "מערכת תקיפה מרחבית";
+            document.getElementById('ui-title').className = "text-2xl header-title mb-1";
+            setWeapon('plane');
+            
+            if (currentLevel === 1) {
+                maxProgress = 3;
+                targets = [
+                    { id: 1, type: 'radar', x: width * 0.75, y: height * 0.3, active: true, radius: 25 },
+                    { id: 2, type: 'radar', x: width * 0.82, y: height * 0.45, active: true, radius: 25 },
+                    { id: 3, type: 'radar', x: width * 0.65, y: height * 0.55, active: true, radius: 25 }
+                ];
+            } else if (currentLevel === 2) {
+                maxProgress = 1;
+                targets = [
+                    { id: 4, type: 'bunker', x: width * 0.78, y: height * 0.4, active: true, radius: 35 }
+                ];
+            }
+        } 
+        else if (lvl.type === 'defense') {
+            document.getElementById('attack-weapons').style.display = 'none';
+            document.getElementById('defense-weapons').style.display = 'flex';
+            document.getElementById('sidebar').style.borderColor = '#ef4444';
+            document.getElementById('ui-title').innerText = "מרכז יירוט - מגן ציון";
+            document.getElementById('ui-title').className = "text-2xl header-title mb-1 alert";
+            currentWeapon = 'arrow';
+            maxProgress = 15;
+            
+            // Start spawning enemy missiles
+            spawnEnemyMissileLoop();
+        }
+        
+        updateProgressUI();
+    }
+
+    function levelComplete() {
+        isPlaying = false;
+        setTimeout(() => {
+            currentLevel++;
+            if (currentLevel > 3) {
+                showModal("ניצחון מוחלט!", "כל המשימות הושלמו בהצלחה. המרחב מאובטח.", "שחק שוב");
+                currentLevel = 1;
+            } else {
+                const nextLvl = levelsData[currentLevel];
+                showModal(nextLvl.title, nextLvl.desc, "התחל משימה", nextLvl.type === 'defense');
+            }
+        }, 2000);
+    }
+
+    function updateProgressUI() {
+        document.getElementById('progress-text').innerText = `${progress}/${maxProgress}`;
+        if (progress >= maxProgress && isPlaying) {
+            levelComplete();
+        }
+    }
+
+    // --- 4. Weapon UI ---
+    function setWeapon(type) {
+        if(!isPlaying || currentLevel === 3) return; // Locked in level 3
+        currentWeapon = type;
+        document.querySelectorAll('#attack-weapons .weapon-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`btn-${type}`).classList.add('active');
+    }
+
+    function triggerShake(intensity) {
+        wrapper.classList.remove('shake-light', 'shake-heavy');
+        void wrapper.offsetWidth;
+        wrapper.classList.add(intensity === 'heavy' ? 'shake-heavy' : 'shake-light');
+    }
+
+    // --- 5. Entities (Classes) ---
+    class Particle {
+        constructor(x, y, color, speedMultiplier = 1) {
+            this.x = x; this.y = y;
+            this.size = Math.random() * 5 + 2;
+            let angle = Math.random() * Math.PI * 2;
+            let vel = (Math.random() * 8 + 2) * speedMultiplier;
+            this.speedX = Math.cos(angle) * vel;
+            this.speedY = Math.sin(angle) * vel;
+            this.color = color;
+            this.alpha = 1;
+            this.decay = Math.random() * 0.02 + 0.01;
+        }
+        update() {
+            this.x += this.speedX; this.y += this.speedY;
+            this.speedX *= 0.9; this.speedY *= 0.9;
+            this.alpha -= this.decay;
+        }
+        draw() {
+            if(this.alpha <= 0) return;
+            ctx.globalAlpha = this.alpha; ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    class Explosion {
+        constructor(x, y, type) {
+            this.x = x; this.y = y; this.type = type;
+            this.particles = []; this.radius = 0; this.done = false;
+            
+            let colorP = '#ff4d00', colorS = '#ffaa00', pCount = 40, speedM = 1;
+            
+            if (type === 'bunker') { this.maxRadius = 150; pCount = 80; speedM = 2; colorP = '#ff0000'; colorS = '#fff'; triggerShake('heavy'); }
+            else if (type === 'flak') { this.maxRadius = 70; pCount = 50; speedM = 1.5; colorP = '#fbbf24'; colorS = '#fff'; triggerShake('light'); }
+            else { this.maxRadius = 60; triggerShake('light'); }
+
+            for (let i = 0; i < pCount; i++) this.particles.push(new Particle(x, y, i%2===0?colorP:colorS, speedM));
+            this.opacity = 1;
+            this.activeTime = type === 'flak' ? 60 : 0; // Flak lingers to kill missiles
+        }
+        update() {
+            this.radius += (this.maxRadius - this.radius) * 0.2;
+            if (this.activeTime > 0) this.activeTime--;
+            else this.opacity -= 0.02;
+            
+            let act = false;
+            this.particles.forEach(p => { p.update(); if (p.alpha > 0) act = true; });
+            if (this.opacity <= 0 && !act) this.done = true;
+        }
+        draw() {
+            if (this.opacity > 0) {
+                ctx.globalAlpha = this.opacity * 0.6;
+                ctx.fillStyle = this.type === 'flak' ? '#f59e0b' : '#ea580c';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = this.opacity * 0.9;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI * 2); ctx.fill();
+            }
+            this.particles.forEach(p => p.draw()); ctx.globalAlpha = 1;
+        }
+    }
+
+    class Crater {
+        constructor(x, y) {
+            this.x = x; this.y = y; this.radius = Math.random() * 10 + 15;
+            this.smoke = [];
+            for(let i=0; i<6; i++) this.smoke.push({ x: x+(Math.random()-0.5)*15, y: y+(Math.random()-0.5)*15, size: Math.random()*15+10, life: Math.random()*100+50 });
+        }
+        draw() {
+            ctx.fillStyle = 'rgba(10, 5, 0, 0.8)';
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
+            this.smoke.forEach(s => {
+                if(s.life > 0) {
+                    s.y -= 0.1; s.life--; s.size += 0.02;
+                    ctx.globalAlpha = (s.life / 150) * 0.3;
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+                }
+            });
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    class Projectile {
+        constructor(type, tx, ty) {
+            this.type = type; this.tx = tx; this.ty = ty;
+            this.done = false; this.trail = [];
+            
+            if (type === 'plane' || type === 'bunker') {
+                this.x = -100; this.y = ty - 150; this.speed = 12; this.dropped = false;
+            } else if (type === 'missile') {
+                this.x = carrierBase.x; this.y = carrierBase.y; this.speed = 3; this.maxSpeed = 15;
+            } else if (type === 'arrow') {
+                // Defensive interceptor
+                this.x = israelBase.x; this.y = israelBase.y; this.speed = 25; // Super fast
+            }
+        }
+        update() {
+            if(this.type === 'missile' || this.type === 'arrow') {
+                this.trail.push({x: this.x, y: this.y});
+                if(this.trail.length > 20) this.trail.shift();
+            }
+
+            if (this.type === 'plane' || this.type === 'bunker') {
+                this.x += this.speed;
+                if (!this.dropped && this.x >= this.tx) {
+                    this.dropped = true;
+                    handleImpact(this.tx, this.ty, this.type);
+                }
+                if (this.x > width + 100) this.done = true;
+            } else {
+                let dx = this.tx - this.x; let dy = this.ty - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (this.type === 'missile') { this.speed += 0.3; if(this.speed>this.maxSpeed) this.speed=this.maxSpeed; }
+                
+                if (dist < this.speed) {
+                    this.done = true;
+                    if(this.type === 'arrow') {
+                        let exp = new Explosion(this.tx, this.ty, 'flak');
+                        explosions.push(exp);
+                        flakClouds.push(exp); // Track specifically for missile collision
+                    } else {
+                        handleImpact(this.tx, this.ty, this.type);
+                    }
+                } else {
+                    this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed;
+                }
+            }
+        }
+        draw() {
+            if (this.trail.length > 0) {
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.beginPath();
+                for(let i=0; i<this.trail.length; i++) {
+                    ctx.strokeStyle = this.type === 'arrow' ? `rgba(100, 200, 255, ${i/this.trail.length})` : `rgba(255, 150, 50, ${i/this.trail.length})`;
+                    if(i===0) ctx.moveTo(this.trail[i].x, this.trail[i].y); else ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                }
+                ctx.stroke();
+            }
+            
+            ctx.save(); ctx.translate(this.x, this.y);
+            if (this.type === 'arrow' || this.type === 'missile') {
+                ctx.rotate(Math.atan2(this.ty - this.y, this.tx - this.x));
+                ctx.fillStyle = this.type === 'arrow' ? '#38bdf8' : '#f8fafc';
+                ctx.fillRect(-10, -2, 20, 4);
+                // Engine flame
+                ctx.fillStyle = '#fb923c'; ctx.beginPath(); ctx.arc(-12, 0, 3, 0, Math.PI*2); ctx.fill();
+            } else {
+                ctx.rotate(0);
+                ctx.fillStyle = '#475569';
+                ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(0,5); ctx.lineTo(-10,12); ctx.lineTo(-15,12); ctx.lineTo(-5,0); ctx.lineTo(-15,-12); ctx.lineTo(-10,-12); ctx.lineTo(0,-5); ctx.fill();
+            }
+            ctx.restore();
+        }
+    }
+
+    class EnemyMissile {
+        constructor() {
+            this.x = width * 0.7 + Math.random() * (width * 0.2); // Spawn from Iran
+            this.y = height * 0.2 + Math.random() * (height * 0.3);
+            this.tx = israelBase.x + (Math.random()-0.5)*100;
+            this.ty = israelBase.y + (Math.random()-0.5)*100;
+            this.speed = 3 + Math.random() * 2;
+            this.trail = [];
+            this.done = false;
+        }
+        update() {
+            this.trail.push({x: this.x, y: this.y});
+            if(this.trail.length > 30) this.trail.shift();
+
+            let dx = this.tx - this.x; let dy = this.ty - this.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+
+            // Check collision with Flak (Arrow explosions)
+            for(let i=0; i<flakClouds.length; i++) {
+                let flak = flakClouds[i];
+                if(flak.opacity > 0) {
+                    let d = Math.hypot(this.x - flak.x, this.y - flak.y);
+                    if(d < flak.radius) {
+                        // INTERCEPTED!
+                        this.done = true;
+                        explosions.push(new Explosion(this.x, this.y, 'normal'));
+                        showFloatingText('יורט בהצלחה!', this.x, this.y - 20, '#38bdf8');
+                        progress++;
+                        updateProgressUI();
+                        return;
+                    }
+                }
+            }
+
+            if (dist < this.speed) {
+                // HIT ISRAEL
+                this.done = true;
+                explosions.push(new Explosion(this.tx, this.ty, 'normal'));
+                triggerShake('heavy');
+                showFloatingText('פגיעה בשטחנו!', this.tx, this.ty - 20, '#ef4444');
+                // Optional: Reduce health here
+            } else {
+                this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed;
+            }
+        }
+        draw() {
+            ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath();
+            for(let i=0; i<this.trail.length; i++) {
+                ctx.strokeStyle = `rgba(239, 68, 68, ${i/this.trail.length})`;
+                if(i===0) ctx.moveTo(this.trail[i].x, this.trail[i].y); else ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            }
+            ctx.stroke();
+            
+            ctx.save(); ctx.translate(this.x, this.y);
+            ctx.rotate(Math.atan2(this.ty - this.y, this.tx - this.x));
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(-12, -3, 24, 6);
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(12,-3); ctx.lineTo(18,0); ctx.lineTo(12,3); ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    // --- 6. Interactions & Logic ---
+    function spawnEnemyMissileLoop() {
+        if (!isPlaying || currentLevel !== 3) return;
+        enemyMissiles.push(new EnemyMissile());
+        
+        let delay = Math.max(800, 2000 - (progress * 50)); // Gets faster as you progress
+        setTimeout(spawnEnemyMissileLoop, delay);
+    }
+
+    function handleImpact(x, y, wType) {
+        explosions.push(new Explosion(x, y, wType === 'bunker' ? 'bunker' : 'normal'));
+        craters.push(new Crater(x, y));
+
+        if (currentLevel === 1) {
+            targets.forEach(t => {
+                if (t.active && Math.hypot(t.x - x, t.y - y) < t.radius * 2) {
+                    t.active = false;
+                    showFloatingText('מכ"ם הושמד!', t.x, t.y - 20, '#4ade80');
+                    progress++; updateProgressUI();
+                }
+            });
+        } 
+        else if (currentLevel === 2) {
+            targets.forEach(t => {
+                if (t.active && Math.hypot(t.x - x, t.y - y) < t.radius * 2) {
+                    if (wType === 'bunker') {
+                        t.active = false;
+                        showFloatingText('בונקר הושמד לחלוטין!', t.x, t.y - 20, '#ef4444');
+                        progress++; updateProgressUI();
+                    } else {
+                        showFloatingText('נשק לא חודר!', t.x, t.y - 20, '#94a3b8');
+                    }
+                }
+            });
+        }
+    }
+
+    function showFloatingText(txt, x, y, color) {
+        const msg = document.createElement('div');
+        msg.innerText = txt;
+        msg.style.position = 'absolute'; msg.style.left = x+'px'; msg.style.top = y+'px';
+        msg.style.transform = 'translate(-50%, -50%)'; msg.style.color = color;
+        msg.style.fontWeight = 'bold'; msg.style.fontSize = '18px';
+        msg.style.textShadow = '0px 0px 8px black'; msg.style.pointerEvents = 'none';
+        msg.style.transition = 'all 1.5s ease-out'; msg.style.zIndex = '100';
+        wrapper.appendChild(msg);
+        setTimeout(() => { msg.style.top = (y-40)+'px'; msg.style.opacity = '0'; }, 50);
+        setTimeout(() => msg.remove(), 1500);
+    }
+
+    clickCatcher.addEventListener('mousedown', (e) => {
+        if(!isPlaying) return;
+        const rect = clickCatcher.getBoundingClientRect();
+        const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+        
+        if (currentLevel === 3) {
+            projectiles.push(new Projectile('arrow', x, y));
+        } else {
+            projectiles.push(new Projectile(currentWeapon, x, y));
+        }
+    });
+
+    // --- 7. Main Draw Loop ---
+    function drawStatics() {
+        // Israel Base
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.1)';
+        ctx.beginPath(); ctx.arc(israelBase.x, israelBase.y, 60, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = '#38bdf8'; ctx.font = '14px Heebo'; ctx.textAlign = 'center'; ctx.fillText('מרחב הגנה - ישראל', israelBase.x, israelBase.y + 75);
+
+        // Targets
+        targets.forEach(t => {
+            if(t.active) {
+                if(t.type === 'radar') {
+                    let pulse = Math.sin(Date.now()/150)*4;
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.radius + pulse, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.fillStyle = '#ef4444'; ctx.fillText('S-300', t.x, t.y + 5);
+                } else if (t.type === 'bunker') {
+                    ctx.fillStyle = '#1e293b'; ctx.fillRect(t.x-25, t.y-15, 50, 30);
+                    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3; ctx.strokeRect(t.x-25, t.y-15, 50, 30);
+                    ctx.fillStyle = '#f59e0b'; ctx.font = '20px Arial'; ctx.fillText('☢️', t.x, t.y + 5);
+                }
+            }
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        craters.forEach(c => c.draw());
+        drawStatics();
+
+        for (let i = enemyMissiles.length - 1; i >= 0; i--) {
+            enemyMissiles[i].update(); enemyMissiles[i].draw();
+            if (enemyMissiles[i].done) enemyMissiles.splice(i, 1);
+        }
+
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            projectiles[i].update(); projectiles[i].draw();
+            if (projectiles[i].done) projectiles.splice(i, 1);
+        }
+
+        // Clean up flak clouds ref array
+        flakClouds = flakClouds.filter(f => f.opacity > 0);
+
+        for (let i = explosions.length - 1; i >= 0; i--) {
+            explosions[i].update(); explosions[i].draw();
+            if (explosions[i].done) explosions.splice(i, 1);
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    // Start
+    resize();
+    animate();
+    showModal("פתיחת מערכה", "מפקד, קבלת שליטה על מערך התקיפה וההגנה המרחבי. עליך לבצע את המשימות לפי הסדר כדי להסיר את האיום.", "התחל מבצע");
+
+</script>
+
+</body>
+</html>
