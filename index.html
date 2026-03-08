@@ -423,19 +423,18 @@
 
         // מניעת מקשי קיצור של מפתחים והעתקה
         document.addEventListener('keydown', function(e) {
-            // F12
-            if (e.key === 'F12' || e.keyCode === 123) {
+            // שימוש ב-code ו-keyCode כדי שזה יעבוד גם כשהמקלדת בעברית
+            const isF12 = e.code === 'F12' || e.keyCode === 123;
+            const isCtrlU = (e.ctrlKey || e.metaKey) && (e.code === 'KeyU' || e.keyCode === 85);
+            const isCtrlS = (e.ctrlKey || e.metaKey) && (e.code === 'KeyS' || e.keyCode === 83);
+            const isCtrlC = (e.ctrlKey || e.metaKey) && (e.code === 'KeyC' || e.keyCode === 67);
+            const isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.code === 'KeyI' || e.keyCode === 73);
+            const isCtrlShiftJ = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.code === 'KeyJ' || e.keyCode === 74);
+            const isCtrlShiftC = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.code === 'KeyC' || e.keyCode === 67);
+
+            if (isF12 || isCtrlU || isCtrlS || isCtrlC || isCtrlShiftI || isCtrlShiftJ || isCtrlShiftC) {
                 e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+I / J / C
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+U (View Source) / Ctrl+S (Save) / Ctrl+C (Copy)
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.key === 'S' || e.key === 's' || e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
+                e.stopPropagation();
                 return false;
             }
         });
