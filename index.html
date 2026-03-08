@@ -27,6 +27,7 @@
             width: 100vw;
             height: 100vh;
             position: relative;
+            transition: all 0.3s ease;
         }
 
         /* Sidebar */
@@ -113,6 +114,37 @@
             position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 20;
         }
 
+        /* Mobile Mode Toggle Button */
+        #mobile-toggle {
+            position: absolute; top: 15px; left: 15px; z-index: 500;
+            background: rgba(15, 23, 42, 0.9); border: 1px solid #38bdf8;
+            color: #38bdf8; padding: 8px 15px; border-radius: 8px;
+            font-weight: bold; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #mobile-toggle:hover { background: #38bdf8; color: #000; }
+
+        /* Mobile Mode CSS overrides */
+        #game-container.mobile-mode {
+            flex-direction: column-reverse;
+        }
+        #game-container.mobile-mode .sidebar {
+            width: 100%; height: 45vh; padding: 15px;
+            border-left: none; border-top: 2px solid #3b82f6;
+            overflow-y: auto; gap: 10px;
+        }
+        #game-container.mobile-mode #map-wrapper {
+            height: 55vh; width: 100%;
+        }
+        #game-container.mobile-mode #attack-weapons {
+            flex-direction: row; flex-wrap: wrap; justify-content: space-between;
+        }
+        #game-container.mobile-mode .weapon-btn {
+            width: 48%; padding: 8px; flex-direction: column; text-align: center; gap: 5px;
+        }
+        #game-container.mobile-mode .weapon-btn .text-xs { display: none; }
+        #game-container.mobile-mode .mission-brief { padding: 20px; max-width: 90%; }
+
         /* Modal / Overlays */
         #modal-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -161,6 +193,8 @@
 <body>
 
 <div id="game-container">
+    <button id="mobile-toggle" onclick="toggleMobile()">📱 תצוגת נייד</button>
+    
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div>
@@ -168,7 +202,7 @@
             <p class="text-xs text-gray-400 mb-4" id="ui-subtitle">שלב נוכחי: ממתין לפקודה</p>
         </div>
 
-        <!-- Attack Weapons (Levels 1 & 2) -->
+        <!-- Attack Weapons -->
         <div id="attack-weapons" class="flex flex-col gap-3">
             <div id="btn-plane" class="weapon-btn active" onclick="setWeapon('plane')">
                 <div class="icon-container"><span class="text-xl">✈️</span></div>
@@ -182,7 +216,7 @@
                 <div class="icon-container"><span class="text-xl">🚀</span></div>
                 <div>
                     <div class="font-bold text-gray-100">טיל שיוט ימי</div>
-                    <div class="text-xs text-orange-400">מהיר | סכנת יירוט</div>
+                    <div class="text-xs text-orange-400">מהיר | מנושאת מטוסים</div>
                 </div>
             </div>
 
@@ -195,14 +229,14 @@
             </div>
         </div>
 
-        <!-- Defense Weapons (Level 3) -->
+        <!-- Defense Weapons -->
         <div id="defense-weapons" class="hidden flex-col gap-3">
             <div id="btn-arrow" class="weapon-btn defense active">
                 <div class="icon-container"><span class="text-xl">🛡️</span></div>
                 <div>
                     <div class="font-bold text-gray-100">מערכת "חץ 3"</div>
                     <div class="text-xs text-yellow-400">יירוט אקסו-אטמוספרי</div>
-                    <div class="text-xs text-gray-400 mt-1">לחץ על המפה ליירוט טילים נכנסים</div>
+                    <div class="text-xs text-gray-400 mt-1">לחץ על המפה ליירוט מעל שטח ישראל</div>
                 </div>
             </div>
         </div>
@@ -236,16 +270,38 @@
 </div>
 
 <script>
-    // --- 1. Map Initialization ---
-    // Centered to show both Israel (left) and Iran (right)
+    // --- 1. Coordinate & Map Setup ---
+    // Boundaries to ensure Israel (SW) and Iran (NE) are always visible regardless of screen size
+    const mapBounds = [
+        [28.0, 33.0], // South-West limit (Egypt/Sinai area)
+        [37.0, 55.0]  // North-East limit (Iran area)
+    ];
+
     const map = L.map('leaflet-map', {
         zoomControl: false, dragging: false, scrollWheelZoom: false,
         doubleClickZoom: false, boxZoom: false, keyboard: false
-    }).setView([32.5, 43.0], 5);
-
+    });
+    
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri'
     }).addTo(map);
+
+    map.fitBounds(mapBounds);
+
+    // Exact Lat/Lng Outline of Israel for Drawing
+    const israelBorder = [
+        [33.28, 35.58], // Metula (North)
+        [32.76, 35.66], // Sea of Galilee
+        [32.40, 35.55], // Bet Shean area
+        [31.30, 35.38], // Dead Sea
+        [29.50, 34.91], // Eilat (South)
+        [30.80, 34.40], // Negev border
+        [31.22, 34.27], // Gaza border south
+        [31.62, 34.52], // Ashkelon
+        [32.08, 34.78], // Tel Aviv
+        [32.82, 34.98]  // Haifa
+    ];
+    const carrierLatLng = [26.5, 52.0]; // Persian Gulf
 
     // --- 2. Canvas & State Setup ---
     const canvas = document.getElementById('game-canvas');
@@ -259,54 +315,75 @@
     let currentWeapon = 'plane';
     let progress = 0;
     let maxProgress = 0;
+    let isMobileMode = false;
     
-    // Game Entities
     let projectiles = [];
     let explosions = [];
     let craters = [];
     let targets = [];
     let enemyMissiles = [];
     let flakClouds = [];
-    let interceptors = []; // Enemy SAMs
-    
-    // Base Locations (relative to screen width/height)
-    let israelBase = { x: 0, y: 0 };
-    let carrierBase = { x: 0, y: 0 };
 
     const levelsData = {
         1: {
             title: "שלב 1: עיוורון חלקי",
-            desc: "מערך ההגנה האווירית של האויב מאיים על מטוסינו. השמד 3 סוללות מכ\"ם נ\"מ מתקדמות כדי לפתוח את הנתיב.",
-            objective: "השמד את כל 3 מטרות המכ\"ם האדומות.",
+            desc: "השמד 3 סוללות מכ\"ם נ\"מ מתקדמות כדי לפתוח את נתיב הטיסה. שים לב לרדארים האדומים סביבן.",
+            objective: "השמד את כל 3 מטרות המכ\"ם בסורק האדום.",
             type: "attack"
         },
         2: {
             title: "שלב 2: הלב הפועם",
-            desc: "הנתיב פנוי. המודיעין איתר את מתקן הגרעין התת-קרקעי באזור איספהאן. עליך להשמיד אותו לחלוטין.",
-            objective: "השתמש בפצצת חודר בונקרים בלבד כדי להשמיד את המתקן המבוצר.",
+            desc: "המודיעין איתר מתקן גרעין תת-קרקעי באזור איספהאן. עליך להשמיד אותו לחלוטין.",
+            objective: "השתמש בפצצת 'חודר בונקרים' בלבד כדי להשמיד את המתקן המבוצר.",
             type: "attack"
         },
         3: {
             title: "שלב 3: חומת אש (הגנה)",
-            desc: "האויב מגיב באש! מטח טילים בליסטיים כבדים שוגר לעבר ישראל. עבור למערכת החץ והגן על המדינה!",
-            objective: "יירט 15 טילים בליסטיים באוויר. לחץ על המפה כדי ליצור פיצוצי נ\"מ (פלאק) בנתיב הטילים.",
+            desc: "האויב מגיב באש! מטח טילים בליסטיים שוגר מאיראן לעבר שטחה של מדינת ישראל. הגן על המדינה!",
+            objective: "יירט 15 טילים באוויר. לחץ באזור המפה שמעל ישראל כדי ליצור 'חומת אש' שתפיל את הטילים.",
             type: "defense"
         }
     };
+
+    function toggleMobile() {
+        isMobileMode = !isMobileMode;
+        const container = document.getElementById('game-container');
+        const btn = document.getElementById('mobile-toggle');
+        
+        if(isMobileMode) {
+            container.classList.add('mobile-mode');
+            btn.innerText = '💻 תצוגת מחשב';
+        } else {
+            container.classList.remove('mobile-mode');
+            btn.innerText = '📱 תצוגת נייד';
+        }
+        
+        // Wait for CSS animation then resize map perfectly
+        setTimeout(() => {
+            map.invalidateSize();
+            map.fitBounds(mapBounds);
+            resize();
+        }, 350);
+    }
+
+    // Auto toggle if loaded on a small screen
+    if(window.innerWidth <= 768) {
+        toggleMobile();
+    }
 
     function resize() {
         width = wrapper.clientWidth;
         height = wrapper.clientHeight;
         canvas.width = width;
         canvas.height = height;
-        
-        israelBase = { x: width * 0.15, y: height * 0.65 };
-        carrierBase = { x: width * 0.4, y: height * 0.9 }; // Persian Gulf/Arabian Sea
+        map.invalidateSize();
     }
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', () => {
+        map.fitBounds(mapBounds);
+        resize();
+    });
 
     // --- 3. Level Management ---
-    
     function showModal(title, desc, btnText, isUrgent = false) {
         isPlaying = false;
         document.getElementById('modal-overlay').style.display = 'flex';
@@ -317,21 +394,14 @@
         document.getElementById('modal-desc').innerText = desc;
         btn.innerText = btnText;
         
-        if (isUrgent) {
-            modal.classList.add('urgent');
-            btn.classList.add('urgent');
-        } else {
-            modal.classList.remove('urgent');
-            btn.classList.remove('urgent');
-        }
+        if (isUrgent) { modal.classList.add('urgent'); btn.classList.add('urgent'); } 
+        else { modal.classList.remove('urgent'); btn.classList.remove('urgent'); }
     }
 
     function startLevel() {
         document.getElementById('modal-overlay').style.display = 'none';
-        isPlaying = true;
-        progress = 0;
-        
-        projectiles = []; explosions = []; enemyMissiles = []; flakClouds = []; targets = []; interceptors = [];
+        isPlaying = true; progress = 0;
+        projectiles = []; explosions = []; enemyMissiles = []; flakClouds = []; targets = [];
         
         const lvl = levelsData[currentLevel];
         document.getElementById('ui-subtitle').innerText = lvl.title;
@@ -348,14 +418,14 @@
             if (currentLevel === 1) {
                 maxProgress = 3;
                 targets = [
-                    { id: 1, type: 'radar', x: width * 0.75, y: height * 0.3, active: true, radius: 25 },
-                    { id: 2, type: 'radar', x: width * 0.82, y: height * 0.45, active: true, radius: 25 },
-                    { id: 3, type: 'radar', x: width * 0.65, y: height * 0.55, active: true, radius: 25 }
+                    { id: 1, type: 'radar', lat: 35.68, lng: 51.38, radius: 30, active: true }, // Tehran
+                    { id: 2, type: 'radar', lat: 32.65, lng: 51.66, radius: 30, active: true }, // Isfahan
+                    { id: 3, type: 'radar', lat: 29.59, lng: 52.58, radius: 30, active: true }  // Shiraz
                 ];
             } else if (currentLevel === 2) {
                 maxProgress = 1;
                 targets = [
-                    { id: 4, type: 'bunker', x: width * 0.78, y: height * 0.4, active: true, radius: 35 }
+                    { id: 4, type: 'bunker', lat: 33.72, lng: 51.72, radius: 35, active: true } // Natanz
                 ];
             }
         } 
@@ -363,15 +433,12 @@
             document.getElementById('attack-weapons').style.display = 'none';
             document.getElementById('defense-weapons').style.display = 'flex';
             document.getElementById('sidebar').style.borderColor = '#ef4444';
-            document.getElementById('ui-title').innerText = "מרכז יירוט - מגן ציון";
+            document.getElementById('ui-title').innerText = "מרכז יירוט - מגן לישראל";
             document.getElementById('ui-title').className = "text-2xl header-title mb-1 alert";
             currentWeapon = 'arrow';
             maxProgress = 15;
-            
-            // Start spawning enemy missiles
             spawnEnemyMissileLoop();
         }
-        
         updateProgressUI();
     }
 
@@ -380,7 +447,7 @@
         setTimeout(() => {
             currentLevel++;
             if (currentLevel > 3) {
-                showModal("ניצחון מוחלט!", "כל המשימות הושלמו בהצלחה. המרחב מאובטח.", "שחק שוב");
+                showModal("ניצחון מוחלט!", "מדינת ישראל בטוחה. כל המשימות הושלמו בהצלחה עליונה.", "התחל מחדש");
                 currentLevel = 1;
             } else {
                 const nextLvl = levelsData[currentLevel];
@@ -391,14 +458,11 @@
 
     function updateProgressUI() {
         document.getElementById('progress-text').innerText = `${progress}/${maxProgress}`;
-        if (progress >= maxProgress && isPlaying) {
-            levelComplete();
-        }
+        if (progress >= maxProgress && isPlaying) levelComplete();
     }
 
-    // --- 4. Weapon UI ---
     function setWeapon(type) {
-        if(!isPlaying || currentLevel === 3) return; // Locked in level 3
+        if(!isPlaying || currentLevel === 3) return;
         currentWeapon = type;
         document.querySelectorAll('#attack-weapons .weapon-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn-${type}`).classList.add('active');
@@ -410,63 +474,44 @@
         wrapper.classList.add(intensity === 'heavy' ? 'shake-heavy' : 'shake-light');
     }
 
-    // --- 5. Entities (Classes) ---
+    // --- 4. Game Classes (Physics) ---
     class Particle {
         constructor(x, y, color, speedMultiplier = 1) {
-            this.x = x; this.y = y;
-            this.size = Math.random() * 5 + 2;
+            this.x = x; this.y = y; this.size = Math.random() * 5 + 2;
             let angle = Math.random() * Math.PI * 2;
             let vel = (Math.random() * 8 + 2) * speedMultiplier;
-            this.speedX = Math.cos(angle) * vel;
-            this.speedY = Math.sin(angle) * vel;
-            this.color = color;
-            this.alpha = 1;
-            this.decay = Math.random() * 0.02 + 0.01;
+            this.speedX = Math.cos(angle) * vel; this.speedY = Math.sin(angle) * vel;
+            this.color = color; this.alpha = 1; this.decay = Math.random() * 0.02 + 0.01;
         }
-        update() {
-            this.x += this.speedX; this.y += this.speedY;
-            this.speedX *= 0.9; this.speedY *= 0.9;
-            this.alpha -= this.decay;
-        }
-        draw() {
-            if(this.alpha <= 0) return;
-            ctx.globalAlpha = this.alpha; ctx.fillStyle = this.color;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
-        }
+        update() { this.x+=this.speedX; this.y+=this.speedY; this.speedX*=0.9; this.speedY*=0.9; this.alpha-=this.decay; }
+        draw() { if(this.alpha>0) { ctx.globalAlpha=this.alpha; ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); } }
     }
 
     class Explosion {
         constructor(x, y, type) {
             this.x = x; this.y = y; this.type = type;
             this.particles = []; this.radius = 0; this.done = false;
-            
             let colorP = '#ff4d00', colorS = '#ffaa00', pCount = 40, speedM = 1;
             
             if (type === 'bunker') { this.maxRadius = 150; pCount = 80; speedM = 2; colorP = '#ff0000'; colorS = '#fff'; triggerShake('heavy'); }
             else if (type === 'flak') { this.maxRadius = 70; pCount = 50; speedM = 1.5; colorP = '#fbbf24'; colorS = '#fff'; triggerShake('light'); }
             else { this.maxRadius = 60; triggerShake('light'); }
 
-            for (let i = 0; i < pCount; i++) this.particles.push(new Particle(x, y, i%2===0?colorP:colorS, speedM));
-            this.opacity = 1;
-            this.activeTime = type === 'flak' ? 60 : 0; // Flak lingers to kill missiles
+            for (let i=0; i<pCount; i++) this.particles.push(new Particle(x, y, i%2===0?colorP:colorS, speedM));
+            this.opacity = 1; this.activeTime = type === 'flak' ? 60 : 0;
         }
         update() {
             this.radius += (this.maxRadius - this.radius) * 0.2;
-            if (this.activeTime > 0) this.activeTime--;
-            else this.opacity -= 0.02;
-            
-            let act = false;
-            this.particles.forEach(p => { p.update(); if (p.alpha > 0) act = true; });
+            if (this.activeTime > 0) this.activeTime--; else this.opacity -= 0.02;
+            let act = false; this.particles.forEach(p => { p.update(); if(p.alpha>0) act = true; });
             if (this.opacity <= 0 && !act) this.done = true;
         }
         draw() {
             if (this.opacity > 0) {
-                ctx.globalAlpha = this.opacity * 0.6;
-                ctx.fillStyle = this.type === 'flak' ? '#f59e0b' : '#ea580c';
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
-                ctx.globalAlpha = this.opacity * 0.9;
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = this.opacity * 0.6; ctx.fillStyle = this.type === 'flak' ? '#f59e0b' : '#ea580c';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = this.opacity * 0.9; ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI*2); ctx.fill();
             }
             this.particles.forEach(p => p.draw()); ctx.globalAlpha = 1;
         }
@@ -474,70 +519,51 @@
 
     class Crater {
         constructor(x, y) {
-            this.x = x; this.y = y; this.radius = Math.random() * 10 + 15;
+            this.x = x; this.y = y; this.radius = Math.random() * 8 + 10;
             this.smoke = [];
             for(let i=0; i<6; i++) this.smoke.push({ x: x+(Math.random()-0.5)*15, y: y+(Math.random()-0.5)*15, size: Math.random()*15+10, life: Math.random()*100+50 });
         }
         draw() {
-            ctx.fillStyle = 'rgba(10, 5, 0, 0.8)';
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(10, 5, 0, 0.8)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
             this.smoke.forEach(s => {
                 if(s.life > 0) {
-                    s.y -= 0.1; s.life--; s.size += 0.02;
-                    ctx.globalAlpha = (s.life / 150) * 0.3;
-                    ctx.fillStyle = '#333';
-                    ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+                    s.y -= 0.1; s.life--; s.size += 0.02; ctx.globalAlpha = (s.life/150)*0.3;
+                    ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
                 }
-            });
-            ctx.globalAlpha = 1;
+            }); ctx.globalAlpha = 1;
         }
     }
 
     class Projectile {
         constructor(type, tx, ty) {
-            this.type = type; this.tx = tx; this.ty = ty;
-            this.done = false; this.trail = [];
-            
+            this.type = type; this.tx = tx; this.ty = ty; this.done = false; this.trail = [];
             if (type === 'plane' || type === 'bunker') {
                 this.x = -100; this.y = ty - 150; this.speed = 12; this.dropped = false;
             } else if (type === 'missile') {
-                this.x = carrierBase.x; this.y = carrierBase.y; this.speed = 3; this.maxSpeed = 15;
+                let startPt = map.latLngToContainerPoint(carrierLatLng);
+                this.x = startPt.x; this.y = startPt.y; this.speed = 3; this.maxSpeed = 15;
             } else if (type === 'arrow') {
-                // Defensive interceptor
-                this.x = israelBase.x; this.y = israelBase.y; this.speed = 25; // Super fast
+                let startPt = map.latLngToContainerPoint([31.5, 34.8]); // Central Israel
+                this.x = startPt.x; this.y = startPt.y; this.speed = 25; 
             }
         }
         update() {
             if(this.type === 'missile' || this.type === 'arrow') {
-                this.trail.push({x: this.x, y: this.y});
-                if(this.trail.length > 20) this.trail.shift();
+                this.trail.push({x: this.x, y: this.y}); if(this.trail.length>20) this.trail.shift();
             }
-
             if (this.type === 'plane' || this.type === 'bunker') {
                 this.x += this.speed;
-                if (!this.dropped && this.x >= this.tx) {
-                    this.dropped = true;
-                    handleImpact(this.tx, this.ty, this.type);
-                }
+                if (!this.dropped && this.x >= this.tx) { this.dropped = true; handleImpact(this.tx, this.ty, this.type); }
                 if (this.x > width + 100) this.done = true;
             } else {
-                let dx = this.tx - this.x; let dy = this.ty - this.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                
+                let dx = this.tx - this.x, dy = this.ty - this.y; let dist = Math.sqrt(dx*dx + dy*dy);
                 if (this.type === 'missile') { this.speed += 0.3; if(this.speed>this.maxSpeed) this.speed=this.maxSpeed; }
-                
                 if (dist < this.speed) {
                     this.done = true;
                     if(this.type === 'arrow') {
-                        let exp = new Explosion(this.tx, this.ty, 'flak');
-                        explosions.push(exp);
-                        flakClouds.push(exp); // Track specifically for missile collision
-                    } else {
-                        handleImpact(this.tx, this.ty, this.type);
-                    }
-                } else {
-                    this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed;
-                }
+                        let exp = new Explosion(this.tx, this.ty, 'flak'); explosions.push(exp); flakClouds.push(exp);
+                    } else handleImpact(this.tx, this.ty, this.type);
+                } else { this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed; }
             }
         }
         draw() {
@@ -546,132 +572,94 @@
                 for(let i=0; i<this.trail.length; i++) {
                     ctx.strokeStyle = this.type === 'arrow' ? `rgba(100, 200, 255, ${i/this.trail.length})` : `rgba(255, 150, 50, ${i/this.trail.length})`;
                     if(i===0) ctx.moveTo(this.trail[i].x, this.trail[i].y); else ctx.lineTo(this.trail[i].x, this.trail[i].y);
-                }
-                ctx.stroke();
+                } ctx.stroke();
             }
-            
             ctx.save(); ctx.translate(this.x, this.y);
             if (this.type === 'arrow' || this.type === 'missile') {
                 ctx.rotate(Math.atan2(this.ty - this.y, this.tx - this.x));
-                ctx.fillStyle = this.type === 'arrow' ? '#38bdf8' : '#f8fafc';
-                ctx.fillRect(-10, -2, 20, 4);
-                // Engine flame
+                ctx.fillStyle = this.type === 'arrow' ? '#38bdf8' : '#f8fafc'; ctx.fillRect(-10, -2, 20, 4);
                 ctx.fillStyle = '#fb923c'; ctx.beginPath(); ctx.arc(-12, 0, 3, 0, Math.PI*2); ctx.fill();
             } else {
-                ctx.rotate(0);
-                ctx.fillStyle = '#475569';
+                ctx.rotate(0); ctx.fillStyle = '#475569';
                 ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(0,5); ctx.lineTo(-10,12); ctx.lineTo(-15,12); ctx.lineTo(-5,0); ctx.lineTo(-15,-12); ctx.lineTo(-10,-12); ctx.lineTo(0,-5); ctx.fill();
-            }
-            ctx.restore();
+            } ctx.restore();
         }
     }
 
     class EnemyMissile {
         constructor() {
-            this.x = width * 0.7 + Math.random() * (width * 0.2); // Spawn from Iran
-            this.y = height * 0.2 + Math.random() * (height * 0.3);
-            this.tx = israelBase.x + (Math.random()-0.5)*100;
-            this.ty = israelBase.y + (Math.random()-0.5)*100;
-            this.speed = 3 + Math.random() * 2;
-            this.trail = [];
-            this.done = false;
+            let sLat = 32.0 + Math.random() * 4.0; let sLng = 51.0 + Math.random() * 3.0;
+            let startPt = map.latLngToContainerPoint([sLat, sLng]);
+            this.x = startPt.x; this.y = startPt.y;
+            
+            // Aiming randomly at Israeli territory boundaries
+            let tLat = 31.0 + Math.random() * 1.8; let tLng = 34.5 + Math.random() * 0.7;
+            let tgtPt = map.latLngToContainerPoint([tLat, tLng]);
+            this.tx = tgtPt.x; this.ty = tgtPt.y;
+            
+            this.speed = 3 + Math.random() * 2; this.trail = []; this.done = false;
         }
         update() {
-            this.trail.push({x: this.x, y: this.y});
-            if(this.trail.length > 30) this.trail.shift();
+            this.trail.push({x: this.x, y: this.y}); if(this.trail.length>30) this.trail.shift();
+            let dx = this.tx - this.x, dy = this.ty - this.y; let dist = Math.sqrt(dx*dx + dy*dy);
 
-            let dx = this.tx - this.x; let dy = this.ty - this.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-
-            // Check collision with Flak (Arrow explosions)
             for(let i=0; i<flakClouds.length; i++) {
-                let flak = flakClouds[i];
-                if(flak.opacity > 0) {
-                    let d = Math.hypot(this.x - flak.x, this.y - flak.y);
-                    if(d < flak.radius) {
-                        // INTERCEPTED!
-                        this.done = true;
-                        explosions.push(new Explosion(this.x, this.y, 'normal'));
-                        showFloatingText('יורט בהצלחה!', this.x, this.y - 20, '#38bdf8');
-                        progress++;
-                        updateProgressUI();
-                        return;
-                    }
+                if(flakClouds[i].opacity > 0 && Math.hypot(this.x - flakClouds[i].x, this.y - flakClouds[i].y) < flakClouds[i].radius) {
+                    this.done = true; explosions.push(new Explosion(this.x, this.y, 'normal'));
+                    showFloatingText('יורט בהצלחה!', this.x, this.y - 20, '#38bdf8');
+                    progress++; updateProgressUI(); return;
                 }
             }
-
             if (dist < this.speed) {
-                // HIT ISRAEL
-                this.done = true;
-                explosions.push(new Explosion(this.tx, this.ty, 'normal'));
-                triggerShake('heavy');
+                this.done = true; explosions.push(new Explosion(this.tx, this.ty, 'normal')); triggerShake('heavy');
                 showFloatingText('פגיעה בשטחנו!', this.tx, this.ty - 20, '#ef4444');
-                // Optional: Reduce health here
-            } else {
-                this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed;
-            }
+            } else { this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed; }
         }
         draw() {
             ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath();
             for(let i=0; i<this.trail.length; i++) {
                 ctx.strokeStyle = `rgba(239, 68, 68, ${i/this.trail.length})`;
                 if(i===0) ctx.moveTo(this.trail[i].x, this.trail[i].y); else ctx.lineTo(this.trail[i].x, this.trail[i].y);
-            }
-            ctx.stroke();
-            
-            ctx.save(); ctx.translate(this.x, this.y);
-            ctx.rotate(Math.atan2(this.ty - this.y, this.tx - this.x));
+            } ctx.stroke();
+            ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(Math.atan2(this.ty - this.y, this.tx - this.x));
             ctx.fillStyle = '#ef4444'; ctx.fillRect(-12, -3, 24, 6);
             ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(12,-3); ctx.lineTo(18,0); ctx.lineTo(12,3); ctx.fill();
             ctx.restore();
         }
     }
 
-    // --- 6. Interactions & Logic ---
+    // --- 5. Handlers & Drawing ---
     function spawnEnemyMissileLoop() {
         if (!isPlaying || currentLevel !== 3) return;
         enemyMissiles.push(new EnemyMissile());
-        
-        let delay = Math.max(800, 2000 - (progress * 50)); // Gets faster as you progress
-        setTimeout(spawnEnemyMissileLoop, delay);
+        setTimeout(spawnEnemyMissileLoop, Math.max(800, 2000 - (progress * 50)));
     }
 
     function handleImpact(x, y, wType) {
         explosions.push(new Explosion(x, y, wType === 'bunker' ? 'bunker' : 'normal'));
         craters.push(new Crater(x, y));
 
-        if (currentLevel === 1) {
-            targets.forEach(t => {
-                if (t.active && Math.hypot(t.x - x, t.y - y) < t.radius * 2) {
-                    t.active = false;
-                    showFloatingText('מכ"ם הושמד!', t.x, t.y - 20, '#4ade80');
+        targets.forEach(t => {
+            if (t.active && Math.hypot(t.x - x, t.y - y) < t.radius * 2) {
+                if (currentLevel === 1) {
+                    t.active = false; showFloatingText('מכ"ם הושמד!', t.x, t.y - 20, '#4ade80');
                     progress++; updateProgressUI();
-                }
-            });
-        } 
-        else if (currentLevel === 2) {
-            targets.forEach(t => {
-                if (t.active && Math.hypot(t.x - x, t.y - y) < t.radius * 2) {
+                } else if (currentLevel === 2) {
                     if (wType === 'bunker') {
-                        t.active = false;
-                        showFloatingText('בונקר הושמד לחלוטין!', t.x, t.y - 20, '#ef4444');
+                        t.active = false; showFloatingText('בונקר הושמד לחלוטין!', t.x, t.y - 20, '#ef4444');
                         progress++; updateProgressUI();
-                    } else {
-                        showFloatingText('נשק לא חודר!', t.x, t.y - 20, '#94a3b8');
-                    }
+                    } else showFloatingText('נשק לא חודר!', t.x, t.y - 20, '#94a3b8');
                 }
-            });
-        }
+            }
+        });
     }
 
     function showFloatingText(txt, x, y, color) {
-        const msg = document.createElement('div');
-        msg.innerText = txt;
+        const msg = document.createElement('div'); msg.innerText = txt;
         msg.style.position = 'absolute'; msg.style.left = x+'px'; msg.style.top = y+'px';
         msg.style.transform = 'translate(-50%, -50%)'; msg.style.color = color;
-        msg.style.fontWeight = 'bold'; msg.style.fontSize = '18px';
-        msg.style.textShadow = '0px 0px 8px black'; msg.style.pointerEvents = 'none';
-        msg.style.transition = 'all 1.5s ease-out'; msg.style.zIndex = '100';
+        msg.style.fontWeight = 'bold'; msg.style.fontSize = '18px'; msg.style.textShadow = '0px 0px 8px black';
+        msg.style.pointerEvents = 'none'; msg.style.transition = 'all 1.5s ease-out'; msg.style.zIndex = '100';
         wrapper.appendChild(msg);
         setTimeout(() => { msg.style.top = (y-40)+'px'; msg.style.opacity = '0'; }, 50);
         setTimeout(() => msg.remove(), 1500);
@@ -681,35 +669,57 @@
         if(!isPlaying) return;
         const rect = clickCatcher.getBoundingClientRect();
         const x = e.clientX - rect.left; const y = e.clientY - rect.top;
-        
-        if (currentLevel === 3) {
-            projectiles.push(new Projectile('arrow', x, y));
-        } else {
-            projectiles.push(new Projectile(currentWeapon, x, y));
-        }
+        projectiles.push(new Projectile(currentLevel === 3 ? 'arrow' : currentWeapon, x, y));
     });
 
-    // --- 7. Main Draw Loop ---
-    function drawStatics() {
-        // Israel Base
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.1)';
-        ctx.beginPath(); ctx.arc(israelBase.x, israelBase.y, 60, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1; ctx.stroke();
-        ctx.fillStyle = '#38bdf8'; ctx.font = '14px Heebo'; ctx.textAlign = 'center'; ctx.fillText('מרחב הגנה - ישראל', israelBase.x, israelBase.y + 75);
+    function drawRadarSweep(x, y, radius, colorStr) {
+        let angle = (Date.now() / 800) % (Math.PI * 2);
+        ctx.fillStyle = `rgba(${colorStr}, 0.15)`; ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = `rgba(${colorStr}, 0.4)`; ctx.lineWidth = 1; ctx.stroke();
+        
+        ctx.fillStyle = `rgba(${colorStr}, 0.5)`; ctx.beginPath(); ctx.moveTo(x, y);
+        ctx.arc(x, y, radius, angle, angle + 0.6); ctx.lineTo(x, y); ctx.fill();
+        ctx.fillStyle = `rgb(${colorStr})`; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
+    }
 
-        // Targets
+    function drawStatics() {
+        // Draw Israel Polygon Area dynamically mapped to Leaflet coords
+        ctx.beginPath();
+        let pt0 = map.latLngToContainerPoint(israelBorder[0]);
+        ctx.moveTo(pt0.x, pt0.y);
+        for(let i=1; i<israelBorder.length; i++) {
+            let pt = map.latLngToContainerPoint(israelBorder[i]);
+            ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.2)'; ctx.fill();
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+        
+        // Israel Main Defense Radar
+        let isrCenter = map.latLngToContainerPoint([31.5, 34.8]);
+        drawRadarSweep(isrCenter.x, isrCenter.y, 70, '56, 189, 248');
+        ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 16px Heebo'; ctx.textAlign = 'center'; 
+        ctx.fillText('מגן ישראל', isrCenter.x, isrCenter.y + 90);
+
+        // Carrier
+        let carrierPt = map.latLngToContainerPoint(carrierLatLng);
+        ctx.fillStyle = '#38bdf8'; ctx.font = '12px Heebo'; ctx.fillText('צי 5 - מפרץ', carrierPt.x, carrierPt.y + 25);
+        ctx.font = '22px Arial'; ctx.fillText('🚢', carrierPt.x, carrierPt.y);
+
+        // Enemy Targets
         targets.forEach(t => {
             if(t.active) {
+                let pt = map.latLngToContainerPoint([t.lat, t.lng]);
+                t.x = pt.x; t.y = pt.y; // Update collision hitboxes relative to screen
+                
                 if(t.type === 'radar') {
-                    let pulse = Math.sin(Date.now()/150)*4;
-                    ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
-                    ctx.beginPath(); ctx.arc(t.x, t.y, t.radius + pulse, 0, Math.PI*2); ctx.fill();
-                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
-                    ctx.fillStyle = '#ef4444'; ctx.fillText('S-300', t.x, t.y + 5);
+                    drawRadarSweep(t.x, t.y, t.radius, '239, 68, 68');
+                    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 14px Heebo'; ctx.fillText('S-300 / מכ"ם', t.x, t.y + t.radius + 15);
                 } else if (t.type === 'bunker') {
                     ctx.fillStyle = '#1e293b'; ctx.fillRect(t.x-25, t.y-15, 50, 30);
                     ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3; ctx.strokeRect(t.x-25, t.y-15, 50, 30);
-                    ctx.fillStyle = '#f59e0b'; ctx.font = '20px Arial'; ctx.fillText('☢️', t.x, t.y + 5);
+                    ctx.fillStyle = '#f59e0b'; ctx.font = '18px Arial'; ctx.fillText('☢️', t.x, t.y + 5);
+                    ctx.font = 'bold 14px Heebo'; ctx.fillText('בונקר אסטרטגי', t.x, t.y - 25);
                 }
             }
         });
@@ -731,7 +741,6 @@
             if (projectiles[i].done) projectiles.splice(i, 1);
         }
 
-        // Clean up flak clouds ref array
         flakClouds = flakClouds.filter(f => f.opacity > 0);
 
         for (let i = explosions.length - 1; i >= 0; i--) {
@@ -742,7 +751,7 @@
         requestAnimationFrame(animate);
     }
 
-    // Start
+    // Init
     resize();
     animate();
     showModal("פתיחת מערכה", "מפקד, קבלת שליטה על מערך התקיפה וההגנה המרחבי. עליך לבצע את המשימות לפי הסדר כדי להסיר את האיום.", "התחל מבצע");
